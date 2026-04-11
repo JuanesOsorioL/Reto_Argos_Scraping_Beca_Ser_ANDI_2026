@@ -1,0 +1,23 @@
+{
+  "name": "rues-api-argos",
+  "version": "2.0.0",
+  "description": "Cliente RUES para el proyecto Argos — extrae ferreterías y negocios de construcción del registro mercantil colombiano",
+  "main": "src/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start":       "node src/api_runner.js",
+    "scrape":      "node src/main.js",
+    "test":        "node src/main.js --test",
+    "cli":         "node src/cli.js"
+  },
+  "dependencies": {
+    "axios":               "^1.8.2",
+    "axios-cookiejar-support": "^6.0.4",
+    "crypto-js":           "^4.2.0",
+    "dotenv":              "^16.0.0",
+    "express":             "^4.18.2",
+    "pg":                  "^8.11.0",
+    "tough-cookie":        "^5.1.2",
+    "uuid":                "^9.0.0"
+  }
+}

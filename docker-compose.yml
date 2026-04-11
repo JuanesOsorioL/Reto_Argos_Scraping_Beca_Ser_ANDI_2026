@@ -1,0 +1,87 @@
+name: RetoArgos
+services:
+  postgressArgos:
+    image: postgres@sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2
+    container_name: postgressArgos
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "1111:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U postgres -d postgres || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - automatizacion_net
+
+  Argos_n8n:
+    image: docker.n8n.io/n8nio/n8n@sha256:52bc65540cbfb6f8b5320bafaf28bcc018ae08124bb0a7cbf5ca7f044b54d698
+    container_name: Argos_n8n
+    restart: unless-stopped
+    ports:
+      - "2222:5678"
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgressArgos
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: postgres
+      DB_POSTGRESDB_USER: postgres
+      DB_POSTGRESDB_PASSWORD: 1234
+      N8N_HOST: Argos_n8n
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:2222/
+      GENERIC_TIMEZONE: America/Bogota
+    depends_on:
+      postgressArgos:
+        condition: service_healthy
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - automatizacion_net
+
+  rues-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rues-api
+    restart: unless-stopped
+    ports:
+      - "8006:8006"
+    environment:
+      NODE_ENV: production
+      PORT: 8006
+
+      DB_HOST: postgressArgos
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+
+      DEBUG_MODE: "false"
+      WRITE_LOG_FILE: "false"
+      WRITE_OUTPUT: "false"
+
+      N8N_WEBHOOK_URL: http://Argos_n8n:5678/webhook/Rues
+    depends_on:
+      postgressArgos:
+        condition: service_healthy
+      Argos_n8n:
+        condition: service_started
+    networks:
+      - automatizacion_net
+
+volumes:
+  postgres_data:
+  n8n_data:
+
+networks:
+  automatizacion_net:
+    driver: bridge

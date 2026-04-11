@@ -1,0 +1,12 @@
+# carpeta app
+RUES/node_modules/
+RUES/.env
+RUES/logs/
+RUES/output/
+
+# archivos puntuales
+RUES/Antes_api_runner.js
+RUES/Docker_pasos.md
+
+# opcional
+npm-debug.log
