@@ -4,9 +4,32 @@ RUES/.env
 RUES/logs/
 RUES/output/
 
+# carpeta app
+ArgosMaps/base_de_datos_argos_maps.jsonl
+ArgosMaps/.env
+ArgosMaps/base_de_datos_argos_maps.xlsx
+ArgosMaps/*.jsonl
+ArgosMaps/*.xlsx
+
+
+ArgosMaps/chrome_session_argos/
+ArgosMaps/playwright/.cache/
+ArgosMaps/ms-playwright/
+ArgosMaps/.venv/
+ArgosMaps/reto argos scraping google maps.code-workspace
+ArgosMaps/__pycache__/
+ArgosMaps/*.log
+ArgosMaps/.vscode/
+ArgosMaps/.idea/
+
+
+
 # archivos puntuales
 RUES/Antes_api_runner.js
 RUES/Docker_pasos.md
 
 # opcional
 npm-debug.log
+
+
+

@@ -49,7 +49,7 @@ services:
 
   rues-api:
     build:
-      context: .
+      context: ./RUES
       dockerfile: Dockerfile
     container_name: rues-api
     restart: unless-stopped
@@ -77,6 +77,34 @@ services:
         condition: service_started
     networks:
       - automatizacion_net
+
+
+  argos-maps-api:
+    build:
+      context: ./ArgosMaps
+      dockerfile: Dockerfile
+    container_name: argos-maps-api
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      PORT: 8001
+      DB_HOST: postgressArgos
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      GUARDAR_JSONL_LOCAL: "false"
+      N8N_WEBHOOK_URL: http://Argos_n8n:5678/webhook/ScrapingGoogleMaps
+    depends_on:
+      postgressArgos:
+        condition: service_healthy
+      Argos_n8n:
+        condition: service_started
+    networks:
+      - automatizacion_net
+
+
 
 volumes:
   postgres_data:

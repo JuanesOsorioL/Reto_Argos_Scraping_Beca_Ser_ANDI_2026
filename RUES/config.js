@@ -53,15 +53,6 @@ const CONFIG = {
     'Accept-Language':'es-ES,es;q=0.8'
   },
 
-
-KEYWORDS_BUSQUEDA: [
-    'A&C FERRETERIA S.A.S'
-  ],
-
-
-
-
-/*
   // Lista de keywords objetivo alineadas al universo de negocio del proyecto Argos.
   KEYWORDS_BUSQUEDA: [
     // Keyword genérica del rubro ferretero.
@@ -103,7 +94,7 @@ KEYWORDS_BUSQUEDA: [
     // Keyword sobre distribuidoras de cemento.
     'distribuidoras de cemento'
   ],
-*/
+
   // Agrupa la configuración de conexión a PostgreSQL.
   DB: {
     // Define el host de la base de datos con fallback a localhost.
