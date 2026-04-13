@@ -105,6 +105,42 @@ services:
       - automatizacion_net
 
 
+  paginas-amarillas-api:
+    build:
+      context: ./ArgosPaginasAmarillas
+      dockerfile: Dockerfile
+    container_name: paginas-amarillas-api
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      PORT: 8002
+
+      DB_HOST: postgressArgos
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+
+      HEADLESS: "true"
+      SAVE_JSON_BACKUP: "false"
+
+      CONCURRENCIA_PESTANAS: "2"
+      TIEMPO_ESPERA_MIN: "1.0"
+      TIEMPO_ESPERA_MAX: "3.0"
+
+      OUTPUT_FILE: "base_de_datos_argos.jsonl"
+      OUTPUT_EXCEL: "Data_Filtrada_Argos.xlsx"
+
+      N8N_WEBHOOK_URL: http://Argos_n8n:5678/webhook/PaginasAmarillas
+    depends_on:
+      postgressArgos:
+        condition: service_healthy
+      Argos_n8n:
+        condition: service_started
+    networks:
+      - automatizacion_net
+
 
 volumes:
   postgres_data:

@@ -23,6 +23,12 @@ ArgosMaps/.vscode/
 ArgosMaps/.idea/
 
 
+ArgosPaginasAmarillas/__pycache__/
+ArgosPaginasAmarillas/.venv/
+ArgosPaginasAmarillas/.env
+ArgosPaginasAmarillas/*.jsonl
+ArgosPaginasAmarillas/base_de_datos_argos.jsonl
+
 
 # archivos puntuales
 RUES/Antes_api_runner.js

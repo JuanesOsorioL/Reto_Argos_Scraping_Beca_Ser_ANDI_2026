@@ -1,0 +1,8 @@
+playwright==1.58.0
+pandas
+openpyxl
+psycopg2-binary
+python-dotenv
+fastapi
+uvicorn
+httpx
