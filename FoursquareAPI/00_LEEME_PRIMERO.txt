@@ -1,0 +1,327 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║              🌐 FOURSQUARE PLACES API SCRAPER — LEEME PRIMERO 🌐              ║
+║                                                                                ║
+║                    Pausa Automática por Rate Limits (403)                     ║
+║                 Integración con n8n, PostgreSQL, Docker                       ║
+║                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📋 INDICE RÁPIDO
+════════════════════════════════════════════════════════════════════════════════
+
+┌─ 5 MINUTOS (Opción A: Empezar YA)
+│  └─ QUICKSTART.md
+│
+├─ 30 MINUTOS (Opción B: Entender TODO)
+│  └─ README.md
+│
+├─ 1-2 HORAS (Opción C: Dominar el código)
+│  └─ EXPLICACION_CODIGO.md
+│
+└─ 2-3 HORAS (Opción D: Producción completa)
+   └─ RESUMEN_EJECUTIVO.md + Integración n8n
+
+════════════════════════════════════════════════════════════════════════════════
+✨ LO QUE CONSEGUISTE
+════════════════════════════════════════════════════════════════════════════════
+
+✅ Detección automática de 403 (Rate Limit)
+   → Se pausa cuando se alcanza el límite
+   → Espera el tiempo correcto (header X-RateLimit-Reset)
+   → Reintenta automáticamente
+
+✅ Persistencia de datos
+   → PostgreSQL: 1,500+ ferreterías
+   → JSON backup (configurable)
+   → Progreso guardado (reanudación inteligente)
+
+✅ Control remoto HTTP
+   → POST /scrape/foursquare → Iniciar
+   → GET /status → Ver estado
+   → POST /reset → Limpiar
+
+✅ Webhooks a n8n
+   → Notificación cuando se pausa/completa
+   → Puedes intervenir manualmente si quieres
+
+✅ Docker + Docker Compose
+   → PostgreSQL + FastAPI listos
+   → Health checks
+   → Logs
+
+✅ Documentación línea por línea
+   → Entender qué hace cada función
+   → Comentarios en el código
+   → Guías completas
+
+════════════════════════════════════════════════════════════════════════════════
+🚀 EMPEZAR AHORA (5 MINUTOS)
+════════════════════════════════════════════════════════════════════════════════
+
+1️⃣  Lee QUICKSTART.md
+
+2️⃣  Prepara .env:
+    - FSQ_API_KEY: Obtén en https://developer.foursquare.com
+    - DB_*: Configuración PostgreSQL
+
+3️⃣  Opción A (Docker recomendado):
+    docker-compose up -d
+    
+    Opción B (Local):
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    python api_runner.py
+
+4️⃣  Dispara scraping:
+    curl -X POST http://localhost:8006/scrape/foursquare
+
+5️⃣  Monitorea:
+    curl http://localhost:8006/status
+
+═══ ¡LISTO EN 5 MINUTOS! ═══
+
+════════════════════════════════════════════════════════════════════════════════
+📖 GUÍA COMPLETA (30 MINUTOS)
+════════════════════════════════════════════════════════════════════════════════
+
+Lee README.md si quieres:
+- Instalación detallada
+- Configuración completa de .env
+- Explicación de cada endpoint HTTP
+- Cómo integrar con n8n
+- Solución de problemas
+
+════════════════════════════════════════════════════════════════════════════════
+📚 ENTENDER EL CÓDIGO (1-2 HORAS)
+════════════════════════════════════════════════════════════════════════════════
+
+Lee EXPLICACION_CODIGO.md si quieres:
+- Qué hace cada archivo (.py)
+- Explicación línea por línea de funciones
+- Flujo de pausa automática por 403
+- Manejo de excepciones
+- Arquitectura general
+
+════════════════════════════════════════════════════════════════════════════════
+💼 PARA STAKEHOLDERS (RESUMEN EJECUTIVO)
+════════════════════════════════════════════════════════════════════════════════
+
+Lee RESUMEN_EJECUTIVO.md si quieres:
+- Números clave del proyecto
+- Arquitectura general
+- Costos (muy bajos)
+- Roadmap futuro
+- Seguridad
+
+════════════════════════════════════════════════════════════════════════════════
+📂 ESTRUCTURA DE ARCHIVOS
+════════════════════════════════════════════════════════════════════════════════
+
+CÓDIGO PYTHON (6 archivos):
+├── config.py            ← Configuración centralizada
+├── db.py                ← PostgreSQL: tablas, insert, progreso
+├── scraper.py           ← Llamadas a Foursquare, detección 403
+├── normalizer.py        ← Mapeo a esquema Argos
+├── main.py              ← Orquestador principal (pausa automática)
+├── api_runner.py        ← Servidor FastAPI (endpoints HTTP)
+└── data_exporter.py     ← Exportar a Excel
+
+UTILIDADES:
+├── requirements.txt     ← Dependencias Python
+├── .env                 ← Variables de entorno (EDITABLE)
+├── Dockerfile           ← Imagen Docker
+├── docker-compose.yml   ← Orquestación Docker + PostgreSQL
+└── output/              ← Directorio de salida (JSON, JSONL)
+
+DOCUMENTACIÓN:
+├── 00_LEEME_PRIMERO.txt      ← Este archivo
+├── QUICKSTART.md             ← 5 pasos / 5 minutos
+├── README.md                 ← Guía completa (30 min)
+├── EXPLICACION_CODIGO.md     ← Línea por línea (1-2 horas)
+└── RESUMEN_EJECUTIVO.md      ← Para directivos
+
+════════════════════════════════════════════════════════════════════════════════
+🔑 PUNTOS CLAVE
+════════════════════════════════════════════════════════════════════════════════
+
+1. PAUSA AUTOMÁTICA POR 403
+   ├─ Foursquare: 5.000 requests/hora (gratis)
+   ├─ Si excedes: status 403
+   ├─ Nuestra solución:
+   │  ├─ Detecta 403 automáticamente
+   │  ├─ Lee header X-RateLimit-Reset
+   │  ├─ Espera el tiempo correcto
+   │  ├─ Guarda progreso en foursquare_progress.json
+   │  ├─ Envía webhook a n8n (opcional)
+   │  └─ Reintenta automáticamente
+   └─ Resultado: NO PIERDES DATOS
+
+2. DATOS EN POSTGRESQL
+   ├─ Tabla: raw.foursquare_ferreterias
+   ├─ Columnas: 45+ (Argos + extras de Foursquare)
+   ├─ Registros: 1,500+
+   └─ Índices: 6 (búsqueda rápida)
+
+3. CONTROL REMOTO HTTP
+   ├─ Iniciar: POST /scrape/foursquare
+   ├─ Ver estado: GET /status
+   ├─ Progreso: GET /progress
+   ├─ Pausar: POST /pause
+   ├─ Reanudar: POST /resume
+   ├─ Reset: POST /reset (⚠️ NO borra BD)
+   └─ Doc interactiva: GET /docs (Swagger)
+
+4. WEBHOOKS A n8n
+   ├─ on_pause: Cuando se pausa por 403
+   ├─ on_complete: Cuando termina
+   └─ on_error: Cuando hay error fatal
+
+════════════════════════════════════════════════════════════════════════════════
+⚡ CONFIGURACIÓN RÁPIDA
+════════════════════════════════════════════════════════════════════════════════
+
+.env (VARIABLES MÁS IMPORTANTES):
+
+# Foursquare API Key (OBLIGATORIO)
+FSQ_API_KEY=tu_api_key_aqui
+
+# Pausa automática (RECOMENDADO)
+AUTO_PAUSE_ON_RATE_LIMIT=true
+RATE_LIMIT_SLEEP_SECONDS=3600
+AUTO_RESUME_AFTER_PAUSE=true
+
+# JSON Backup (OPCIONAL)
+SAVE_JSON_BACKUP=true
+SAVE_PROGRESS_FILE=true
+
+# PostgreSQL
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=1234
+
+# Webhooks a n8n (OPCIONAL)
+WEBHOOK_ON_PAUSE=http://localhost:5678/webhook/foursquare-pause
+WEBHOOK_ON_COMPLETE=http://localhost:5678/webhook/foursquare-complete
+
+Para ver TODAS las opciones: Lee .env
+
+════════════════════════════════════════════════════════════════════════════════
+❓ FAQ RÁPIDO
+════════════════════════════════════════════════════════════════════════════════
+
+P: ¿Cuánto tiempo tarda?
+R: 30-45 minutos (con 1-2 pausas por 403)
+
+P: ¿Dónde están los datos?
+R: PostgreSQL, tabla raw.foursquare_ferreterias
+
+P: ¿Qué pasa si falla durante el scraping?
+R: Guarda estado en foursquare_progress.json. Reinicia y continúa desde donde quedó.
+
+P: ¿Cómo integro con n8n?
+R: Ver README.md → Integración con n8n (sección completa)
+
+P: ¿Cómo exporto a Excel?
+R: python data_exporter.py
+
+P: ¿Cómo limpio todo?
+R: POST /reset (archivos) o SQL DELETE (BD)
+
+P: ¿Necesito pagar algo?
+R: No. Foursquare gratis, PostgreSQL local, Docker gratis.
+
+Para más preguntas: Ver README.md o EXPLICACION_CODIGO.md
+
+════════════════════════════════════════════════════════════════════════════════
+🎯 PLAN RECOMENDADO
+════════════════════════════════════════════════════════════════════════════════
+
+DÍA 1 (30 minutos):
+  1. Lee QUICKSTART.md (5 min)
+  2. Setup Docker (5 min)
+  3. Dispara primer scraping (5 min)
+  4. Monitorea progreso (15 min)
+
+DÍA 2 (1 hora):
+  1. Lee README.md completo (30 min)
+  2. Entiende cada endpoint (20 min)
+  3. Prueba /pause, /resume, /reset (10 min)
+
+DÍA 3 (1-2 horas):
+  1. Lee EXPLICACION_CODIGO.md (1 hora)
+  2. Entiende scraper.py y main.py (30 min)
+  3. Modifica scoring si quieres (30 min)
+
+DÍA 4 (2-3 horas):
+  1. Integra con n8n (1 hora)
+  2. Configura webhooks Telegram (1 hora)
+  3. Deploy a producción (1 hora)
+
+════════════════════════════════════════════════════════════════════════════════
+✅ CHECKLIST ANTES DE PRODUCCIÓN
+════════════════════════════════════════════════════════════════════════════════
+
+Instalación:
+  ☐ .env configurado correctamente
+  ☐ FSQ_API_KEY válida
+  ☐ PostgreSQL corriendo
+  ☐ Docker corriendo (si usas)
+
+Testing:
+  ☐ API responde en http://localhost:8006/health
+  ☐ POST /scrape/foursquare dispara sin errores
+  ☐ GET /status muestra estado correcto
+  ☐ Datos en PostgreSQL
+
+Configuración:
+  ☐ AUTO_PAUSE_ON_RATE_LIMIT=true
+  ☐ SAVE_JSON_BACKUP=true
+  ☐ SAVE_PROGRESS_FILE=true
+  ☐ Webhooks configurados (opcional)
+
+Integración:
+  ☐ n8n apuntando a http://localhost:8006
+  ☐ Webhooks configurados en n8n (opcional)
+  ☐ Telegram configurado (opcional)
+
+════════════════════════════════════════════════════════════════════════════════
+📞 AYUDA RÁPIDA
+════════════════════════════════════════════════════════════════════════════════
+
+¿No arranca Docker?
+  → docker-compose logs postgres
+  → docker-compose logs foursquare
+
+¿Error 401 en Foursquare?
+  → API Key inválida. Obtener nueva en https://developer.foursquare.com
+
+¿Error 403 y no reanuda?
+  → AUTO_RESUME_AFTER_PAUSE=true en .env
+
+¿Dónde están mis datos?
+  → psql -U postgres -d postgres
+  → SELECT * FROM raw.foursquare_ferreterias LIMIT 10;
+
+¿Cómo limpio todo?
+  → curl -X POST http://localhost:8006/reset
+
+════════════════════════════════════════════════════════════════════════════════
+🎉 ÚLTIMO PASO
+════════════════════════════════════════════════════════════════════════════════
+
+Ahora sí:
+
+1. Abre QUICKSTART.md → 5 minutos para empezar
+2. Sigue los 5 pasos
+3. ¡Disfruta tu scraper automático!
+
+Si tienes dudas:
+  → Lee README.md
+  → Lee EXPLICACION_CODIGO.md
+  → Revisa los comentarios en el código (.py)
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    ¡BIENVENIDO AL FUTURO DEL SCRAPING! 🚀                     ║
+╚════════════════════════════════════════════════════════════════════════════════╝

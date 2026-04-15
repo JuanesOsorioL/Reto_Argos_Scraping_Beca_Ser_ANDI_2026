@@ -47,6 +47,12 @@ OpenStreetMapsAPI/*.jsonl
 OpenStreetMapsAPI/output
 
 
+foursquareAPI/__pycache__/
+foursquareAPI/venv/
+foursquareAPI/logs
+foursquareAPI/.env
+foursquareAPI/*.jsonl
+foursquareAPI/output
 
 
 
@@ -58,4 +64,4 @@ RUES/Docker_pasos.md
 npm-debug.log
 
 serper.env
-
+foursquare.env

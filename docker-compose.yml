@@ -78,7 +78,6 @@ services:
     networks:
       - automatizacion_net
 
-
   argos-maps-api:
     build:
       context: ./ArgosMaps
@@ -103,7 +102,6 @@ services:
       #  condition: service_started
     networks:
       - automatizacion_net
-
 
   paginas-amarillas-api:
     build:
@@ -140,8 +138,6 @@ services:
       #  condition: service_started
     networks:
       - automatizacion_net
-
-
 
   serper-api:
     # ─── BUILD ─────────────────────────────────────────────────────────────────
@@ -219,7 +215,6 @@ services:
       retries: 3
       start_period: 40s
 
-
   openstreetmap-api:
     build:
       context: ./OpenStreetMapsAPI
@@ -257,6 +252,92 @@ services:
       retries: 3
       start_period: 40s
 
+  # ───────────────────────────────────────────────────────────────────────────
+  # FOURSQUARE API — Servidor FastAPI
+  # ───────────────────────────────────────────────────────────────────────────
+  
+  foursquare-api:
+    # Construir imagen desde Dockerfile
+    build:
+      context: ./FoursquareAPI
+      dockerfile: Dockerfile
+    
+    # Nombre del servicio
+    container_name: foursquare-api
+    
+    # Variables de entorno
+    environment:
+      # Base de datos
+      DB_HOST: postgres           # Nombre del servicio PostgreSQL
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      
+      
+      
+      # Control de pausa automática
+      AUTO_PAUSE_ON_RATE_LIMIT: "true"
+      RATE_LIMIT_SLEEP_SECONDS: "3600"
+      MAX_CONSECUTIVE_RATE_LIMITS: "5"
+      AUTO_RESUME_AFTER_PAUSE: "true"
+      
+      # JSON Backup
+      SAVE_JSON_BACKUP: "false"
+      SAVE_PROGRESS_FILE: "false"
+      
+      # Webhooks a n8n
+      WEBHOOK_ON_PAUSE: "http://host.docker.internal:5678/webhook/foursquare-pause"
+      WEBHOOK_ON_COMPLETE: "http://host.docker.internal:5678/webhook/foursquare-complete"
+      WEBHOOK_ON_ERROR: "http://host.docker.internal:5678/webhook/foursquare-error"
+      
+      # API Server
+      API_PORT: 8006
+      API_HOST: 0.0.0.0
+      DEBUG: "true"
+    
+    # Puertos: INTERNO:EXTERNO
+    ports:
+      # FastAPI en puerto 8006
+      - "8006:8006"
+    
+    # Volúmenes
+    volumes:
+      # Guardar archivos de salida en el host
+      - ./output:/app/output
+      
+      # Guardar JSONL locales
+      - ./data:/app/data
+      
+      # Código fuente (opcional, para desarrollo)
+      # - .:/app
+    
+    # Dependencias: esperar a que PostgreSQL esté listo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Reiniciar si falla
+    restart: unless-stopped
+    
+    # Logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Red
+    networks:
+      - automatizacion_net
 
 
 volumes:
