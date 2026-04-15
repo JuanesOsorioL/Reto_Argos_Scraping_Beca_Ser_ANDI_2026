@@ -37,6 +37,19 @@ SerperAPI/*.jsonl
 SerperAPI/output
 SerperAPI/serper_progress.json
 
+
+
+OpenStreetMapsAPI/__pycache__/
+OpenStreetMapsAPI/.venv/
+OpenStreetMapsAPI/logs
+OpenStreetMapsAPI/.env
+OpenStreetMapsAPI/*.jsonl
+OpenStreetMapsAPI/output
+
+
+
+
+
 # archivos puntuales
 RUES/Antes_api_runner.js
 RUES/Docker_pasos.md
