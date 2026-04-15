@@ -1,0 +1,92 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Dockerfile — Serper API Container
+# ═══════════════════════════════════════════════════════════════════════════════
+# 
+# Build: docker build -t serper-api:latest .
+# Run:   docker run -d --name serper-api -p 8004:8004 serper-api:latest
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+ 
+# ─── STAGE 1: Builder ──────────────────────────────────────────────────────────
+# Usar imagen Python slim (más pequeña)
+FROM python:3.11-slim as builder
+ 
+# Metadata
+LABEL maintainer="Argos Team"
+LABEL description="Serper API - Google Search Scraper with Auto Rate Limit Handling"
+LABEL version="2.0.0"
+ 
+# ─── INSTALAR DEPENDENCIAS DEL SISTEMA ─────────────────────────────────────────
+# Necesarias para compilar algunos paquetes Python
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+ 
+# ─── CREAR USUARIO NO-ROOT ─────────────────────────────────────────────────────
+# Por seguridad, no ejecutar como root
+RUN useradd -m -u 1000 appuser
+ 
+# ─── ESTABLECER DIRECTORIO DE TRABAJO ──────────────────────────────────────────
+WORKDIR /app
+ 
+# ─── COPIAR REQUIREMENTS ───────────────────────────────────────────────────────
+COPY requirements.txt .
+ 
+# ─── INSTALAR DEPENDENCIAS PYTHON ──────────────────────────────────────────────
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+ 
+# ─── STAGE 2: Runtime ──────────────────────────────────────────────────────────
+FROM python:3.11-slim
+ 
+# ─── INSTALAR SOLO LO NECESARIO PARA RUNTIME ──────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+ 
+# ─── CREAR USUARIO NO-ROOT ────────────────────────────────────────────────────
+RUN useradd -m -u 1000 appuser
+ 
+# ─── TRABAJAR COMO USUARIO NO-ROOT ────────────────────────────────────────────
+USER appuser
+ 
+# ─── DIRECTORIO DE TRABAJO ────────────────────────────────────────────────────
+WORKDIR /app
+ 
+# ─── COPIAR DEPENDENCIAS DEL BUILDER ───────────────────────────────────────────
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+ 
+# ─── COPIAR CÓDIGO DE LA APLICACIÓN ────────────────────────────────────────────
+COPY --chown=appuser:appuser . .
+ 
+# ─── CREAR DIRECTORIO PARA ARCHIVOS LOCALES ───────────────────────────────────
+RUN mkdir -p output logs
+ 
+# ─── HEALTHCHECK ──────────────────────────────────────────────────────────────
+# Verificar que la API está viva cada 30 segundos
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8004/health || exit 1
+ 
+# ─── EXPONER PUERTO ───────────────────────────────────────────────────────────
+# API FastAPI escucha en puerto 8004
+EXPOSE 8004
+ 
+# ─── VARIABLES DE ENTORNO POR DEFECTO ──────────────────────────────────────────
+# Estas se pueden sobrescribir en docker-compose.yml
+ENV \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8004 \
+    SAVE_JSON_BACKUP=false \
+    SAVE_PROGRESS_FILE=true \
+    AUTO_RESUME_ON_RATE_LIMIT=true \
+    RATE_LIMIT_SLEEP_SECONDS=900 \
+    MAX_CONSECUTIVE_RATE_LIMITS=20
+ 
+# ─── COMANDO PARA INICIAR ─────────────────────────────────────────────────────
+# Ejecutar api_runner.py cuando el container inicie
+CMD ["python", "api_runner.py"]

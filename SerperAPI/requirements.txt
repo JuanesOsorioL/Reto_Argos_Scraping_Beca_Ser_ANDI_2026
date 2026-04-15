@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# requirements.txt — Dependencias del proyecto Serper API
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Instalar con: pip install -r requirements.txt
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── HTTP & Redes ──────────────────────────────────────────────────────────────
+requests==2.31.0           # Llamadas HTTP a Serper API
+httpx==0.25.0              # Cliente HTTP async (webhooks a n8n)
+
+# ─── Web Scraping & Parsing ───────────────────────────────────────────────────
+beautifulsoup4==4.12.2     # Parser HTML para extracción de contacto
+lxml==4.9.3                # Backend rápido para BeautifulSoup
+
+# ─── Base de Datos ────────────────────────────────────────────────────────────
+psycopg2-binary==2.9.9     # Driver PostgreSQL
+
+# ─── Framework Web ────────────────────────────────────────────────────────────
+fastapi==0.104.1           # Framework web moderno para API
+uvicorn==0.24.0            # Servidor ASGI para FastAPI
+
+# ─── Configuración ────────────────────────────────────────────────────────────
+python-dotenv==1.0.0       # Cargar variables de .env
+
+# ─── Data Processing ──────────────────────────────────────────────────────────
+pandas==2.1.1              # Análisis de datos (opcional, pero útil)
+openpyxl==3.1.2            # Exportar a Excel (opcional)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERSIONES:
+# - Las versiones fijas garantizan reproducibilidad
+# - Actualizar según necesidad (pero testear antes)
+#
+# NOTAS:
+# - httpx: Necesario para enviar webhooks a n8n de forma asíncrona
+# - psycopg2-binary: Versión compilada precompilada (más rápida)
+# - beautifulsoup4 + lxml: Necesarios para enriquecimiento de URLs
+# - pandas + openpyxl: Opcionales, para análisis y reporte
+#
+# ═══════════════════════════════════════════════════════════════════════════════

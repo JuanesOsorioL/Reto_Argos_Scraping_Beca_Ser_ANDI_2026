@@ -142,6 +142,86 @@ services:
       - automatizacion_net
 
 
+
+  serper-api:
+    # ─── BUILD ─────────────────────────────────────────────────────────────────
+    build:
+      context: ./SerperAPI
+      dockerfile: Dockerfile
+    
+    # ─── IDENTIFICACIÓN ────────────────────────────────────────────────────────
+    container_name: serper-api
+    restart: unless-stopped
+    
+    # ─── PUERTOS ───────────────────────────────────────────────────────────────
+    # 8004: FastAPI (HTTP API)
+    ports:
+      - "8004:8004"
+    
+    # ─── VARIABLES DE ENTORNO ──────────────────────────────────────────────────
+    environment:
+
+      
+      # ─── BASE DE DATOS ─────────────────────────────────────────────────────
+      # Conecta a la misma BD PostgreSQL que el resto
+      DB_HOST: postgressArgos
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      
+      # ─── CONTROL DE GUARDADO ───────────────────────────────────────────────
+      # JSON locales (backup): false = NO guardar (solo Postgres)
+      SAVE_JSON_BACKUP: "false"
+      
+      # Archivo de progreso (para reanudación)
+      SAVE_PROGRESS_FILE: "true"
+      
+      # ─── PAUSA AUTOMÁTICA POR RATE LIMIT ───────────────────────────────────
+      # Auto-reintentar cuando Serper devuelve 429
+      AUTO_RESUME_ON_RATE_LIMIT: "true"
+      
+      # Cuántos segundos esperar entre reintentos (15 min = 900 seg)
+      RATE_LIMIT_SLEEP_SECONDS: "900"
+      
+      # Máximo de reintentos consecutivos antes de parar
+      MAX_CONSECUTIVE_RATE_LIMITS: "20"
+      
+      # ─── WEBHOOK N8N ───────────────────────────────────────────────────────
+      # URL donde enviar notificaciones cuando se pause/termine
+      # Comunicación interna entre containers: usa nombre del container + puerto
+      N8N_WEBHOOK_URL: "http://Argos_n8n:5678/webhook/Serper"
+      
+      # ─── PUERTO ────────────────────────────────────────────────────────────
+      PORT: "8004"
+      
+      # ─── PYTHON ────────────────────────────────────────────────────────────
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    
+    # ─── DEPENDENCIAS ──────────────────────────────────────────────────────────
+    # Esperar a que PostgreSQL esté saludable antes de iniciar
+    depends_on:
+      postgressArgos:
+        condition: service_healthy
+    
+    # ─── RED ───────────────────────────────────────────────────────────────────
+    # Conectar a la red para comunicarse con otros servicios
+    networks:
+      - automatizacion_net
+    
+    # ─── HEALTHCHECK ──────────────────────────────────────────────────────────
+    # Verificar cada 30s que la API está viva
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+
+
+
 volumes:
   postgres_data:
   n8n_data:

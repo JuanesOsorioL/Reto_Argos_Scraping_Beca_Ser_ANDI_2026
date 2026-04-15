@@ -1,0 +1,283 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║               🚀 SERPER API v2.0 — SCRAPER INTELIGENTE 🚀                ║
+║                                                                            ║
+║      Scraping de Google Search con Pausa Automática por Rate Limits       ║
+║                   + Reanudación + Webhooks + n8n                          ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+
+📦 ¿QUÉ HAS RECIBIDO?
+
+✅ 6 archivos Python (2,100+ líneas)
+✅ 7 documentos explicativos (5,000+ líneas)  
+✅ 1 archivo .env (configuración)
+✅ 1 archivo requirements.txt (dependencias)
+✅ TODO completamente documentado línea por línea
+
+
+🎯 ¿POR DÓNDE EMPIEZO?
+
+Opción A: Quiero ver el código YA
+→ Lee: 00_LEEME_PRIMERO.txt (este archivo)
+→ Luego: QUICKSTART.md (5 minutos)
+
+Opción B: Quiero entender TODO
+→ Lee: INDEX.md (índice de navegación)
+→ Luego: README.md (guía completa)
+
+Opción C: Necesito ir rápido
+→ Copia 12 archivos a tu carpeta
+→ Abre: QUICKSTART.md
+→ Sigue 6 pasos
+→ ¡Listo!
+
+
+📋 LISTA DE ARCHIVOS
+
+DOCUMENTACIÓN (7 archivos):
+  1. 00_LEEME_PRIMERO.txt   ← TÚ ESTÁS AQUÍ
+  2. INDEX.md               ← Índice y navegación
+  3. RESUMEN_FINAL.md       ← Resumen ejecutivo
+  4. QUICKSTART.md          ← Inicio rápido (5 min)
+  5. README.md              ← Guía completa (30 min)
+  6. FLUJO_N8N.md           ← Integración n8n
+  7. EXPLICACION_CODIGO.md  ← Código línea por línea
+
+CÓDIGO PYTHON (6 archivos):
+  8. config.py              ← Configuración centralizada
+  9. scraper.py             ← Llamadas a Serper
+  10. db.py                 ← PostgreSQL
+  11. main.py               ← Loop principal
+  12. api_runner.py         ← API FastAPI
+  13. utils.py              ← Funciones auxiliares
+
+CONFIGURACIÓN (2 archivos):
+  14. .env                  ← Variables de entorno
+  15. requirements.txt      ← Dependencias Python
+
+
+⚡ INICIO RÁPIDO (5 MINUTOS)
+
+1. Obtén API key: https://serper.dev/ (gratis)
+
+2. Copia en .env:
+   SERPER_API_KEY=tu_key_aqui
+
+3. Instala dependencias:
+   pip install -r requirements.txt
+
+4. Inicia servidor:
+   python api_runner.py
+
+5. En otra terminal, prueba:
+   curl -X POST http://localhost:8004/scrape/serper/prueba
+
+6. Ve el progreso:
+   curl http://localhost:8004/progress
+
+
+✨ LO MÁS IMPORTANTE
+
+Esto es lo que conseguiste:
+
+✅ DETECCIÓN AUTOMÁTICA
+   - Si Serper devuelve 429 (rate limit)
+   - Sistema automáticamente pausa
+   - Espera 15 minutos
+   - Reintenta sin perder datos
+
+✅ REANUDACIÓN INTELIGENTE
+   - Si la app se cae
+   - Guardar exactamente dónde quedó
+   - Retomar sin rehacer work
+
+✅ CONTROL HTTP API
+   POST /scrape/serper      → Iniciar
+   POST /pause              → Pausar
+   POST /resume             → Reanudar
+   GET /progress            → Ver estado
+   POST /reset              → Borrar todo
+
+✅ INTEGRACIÓN n8n
+   - Webhooks cuando termina
+   - Polling para ver progreso
+   - Auto-reintento si rate limit
+   - Notificaciones Telegram
+
+✅ BASE DE DATOS POSTGRE
+   - Todos los datos guardados
+   - Deduplicación automática
+   - Reanudación sin perder nada
+
+✅ TOTALMENTE DOCUMENTADO
+   - Cada archivo explicado
+   - Cada función documentada
+   - Ejemplos de uso incluidos
+
+
+🔑 CONCEPTOS CLAVE
+
+Rate Limit (429):
+  Si intentas más de 100 requests/minuto en Serper
+  → Sistema detecta automáticamente
+  → Pausa inteligentemente
+  → Espera 15 minutos
+  → Reintenta automáticamente
+  → NO pierdes datos
+
+Reanudación:
+  Si se cae la app
+  → Todos los datos ya están en PostgreSQL
+  → Archivo serper_progress.json guarda dónde quedó
+  → Llamar POST /resume
+  → Continúa exactamente donde paró
+  → Salta queries ya procesadas
+
+Webhooks:
+  Cuando scraping termina
+  → Envía POST a n8n
+  → n8n recibe evento
+  → n8n puede notificar (Telegram, Slack, etc)
+  → n8n puede disparar más acciones
+
+
+📊 NÚMEROS
+
+Keywords:        18 (ferreterías, cemento, construcción, etc)
+Ciudades:        70 (Bogotá, Medellín, Cali, etc)
+Queries total:   1,260 (18 × 70)
+Tiempo:          30-45 minutos (con pauses de rate limit)
+Rate limit:      100 requests/minuto (Serper)
+Tokens gratis:   ~2,500 queries
+API port:        8004
+DB port:         5432
+
+
+🚀 EJEMPLO FLUJO PRODUCCIÓN
+
+1. User: curl -X POST http://localhost:8004/scrape/serper
+                         ↓
+2. API retorna run_id e inicio (no bloquea)
+                         ↓
+3. Background: main.py empieza loop
+   - Para cada query:
+     a) Verificar si ya procesada (salta)
+     b) Llamar Serper
+     c) Si 429: esperar + reintentar
+     d) Enriquecer (visitando URLs)
+     e) Insertar en PostgreSQL
+     f) Guardar progreso
+                         ↓
+4. Mientras tanto: n8n hace polling GET /progress
+   - Ve "corriendo", "pausado_sin_tokens", "ok", "error"
+   - Si "pausado_sin_tokens": espera + resume automáticamente
+   - Si "ok": notifica Telegram "✅ Completado: 3.450 registros"
+                         ↓
+5. Datos en PostgreSQL: nunca se pierden
+   Progreso guardado: puede reanudar en cualquier momento
+   Notificación enviada: n8n supo que terminó
+
+
+⚠️  LO QUE DEBES SABER
+
+❌ NO hagas esto:
+   - Agregar .env a git (secrets!!)
+   - Compartir SERPER_API_KEY
+   - Usar /reset sin pensar (borra TODOO)
+   - Llamar Serper > 100 req/min (bloqueará)
+
+✅ SÍ haz esto:
+   - Guardar .env en .gitignore
+   - Renovar API keys regularly
+   - Probar primero con prueba (2×2)
+   - Monitorear /progress mientras corre
+
+
+📞 NAVEGACIÓN DE DOCUMENTOS
+
+¿Quiero empezar YA?
+→ QUICKSTART.md
+
+¿Quiero entender TODO?
+→ README.md (sección por sección)
+
+¿Quiero ver el código?
+→ EXPLICACION_CODIGO.md (línea por línea)
+
+¿Quiero integrar con n8n?
+→ FLUJO_N8N.md (paso a paso)
+
+¿Quiero un índice?
+→ INDEX.md (búsqueda rápida)
+
+¿Algo no funciona?
+→ README.md Troubleshooting
+
+
+🎓 QUÉ APRENDISTE
+
+✅ Manejo de rate limits automático
+✅ Async/await en Python
+✅ APIs HTTP con FastAPI
+✅ PostgreSQL y SQL
+✅ Web scraping seguro
+✅ Extracción de datos (regex)
+✅ Threading paralelo
+✅ Webhooks y callbacks
+✅ Workflow automation (n8n)
+
+
+🎉 PRÓXIMOS PASOS
+
+Hoy (30 min):
+  [ ] Leer QUICKSTART.md
+  [ ] Obtener API key de Serper
+  [ ] Instalar dependencias
+  [ ] Ejecutar prueba (2×2)
+  [ ] Ver datos en PostgreSQL
+
+Esta semana (2 horas):
+  [ ] Leer README.md completo
+  [ ] Lanzar producción (1.260 queries)
+  [ ] Monitorear progreso
+
+Si quieres n8n (1 hora):
+  [ ] Leer FLUJO_N8N.md
+  [ ] Crear webhook en n8n
+  [ ] Crear workflow automático
+  [ ] Configurar Telegram
+
+Opcional (30 min):
+  [ ] Leer EXPLICACION_CODIGO.md
+  [ ] Customizar según necesidades
+
+
+✉️ SOPORTE
+
+Para preguntas específicas:
+  1. Busca en INDEX.md
+  2. Consulta README.md
+  3. Lee EXPLICACION_CODIGO.md
+  4. Revisa logs: tail -f *.log
+
+Para testear:
+  curl http://localhost:8004/health
+  curl http://localhost:8004/endpoints
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                    👉 SIGUIENTE PASO: ABRE QUICKSTART.md 👈
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Versión: 2.0.0
+Fecha: Enero 2024
+Documentación completa: 7 archivos, 5.000+ líneas
+Código: 6 archivos, 2.100+ líneas
+
+Licencia: Libre para usar
+
+¡Felicidades! Tienes un scraper enterprise-grade completamente funcional 🚀

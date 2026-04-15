@@ -30,6 +30,13 @@ ArgosPaginasAmarillas/*.jsonl
 ArgosPaginasAmarillas/base_de_datos_argos.jsonl
 
 
+SerperAPI/__pycache__/
+SerperAPI/venv/
+SerperAPI/.env
+SerperAPI/*.jsonl
+SerperAPI/output
+SerperAPI/serper_progress.json
+
 # archivos puntuales
 RUES/Antes_api_runner.js
 RUES/Docker_pasos.md
@@ -37,5 +44,5 @@ RUES/Docker_pasos.md
 # opcional
 npm-debug.log
 
-
+serper.env
 
