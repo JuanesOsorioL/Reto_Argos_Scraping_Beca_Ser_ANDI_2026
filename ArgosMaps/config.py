@@ -1,6 +1,24 @@
 
 CIUDADES = [
     # Capitales Principales
+    "bogota", "medellin"
+]
+
+# Mapa ciudad → departamento para enriquecer los registros
+CIUDAD_DEPARTAMENTO = {
+    "bogota": "Cundinamarca"
+}
+
+
+KEYWORDS_BUSQUEDA = [
+    "ferreterias"
+]
+
+
+"""
+
+CIUDADES = [
+    # Capitales Principales
     "bogota", "medellin", "cali", "barranquilla", "cartagena", "bucaramanga", 
     "cucuta", "pereira", "santa-marta", "ibague", "pasto", "manizales", 
     "neiva", "villavicencio", "armenia", "valledupar", "monteria", "sincelejo", 
@@ -56,6 +74,9 @@ KEYWORDS_BUSQUEDA = [
     "hierro y cemento", "bloqueras", "ladrilleras", "prefabricados de concreto", 
     "distribuidoras de cemento"
 ]
+
+"""
+
 
 
 

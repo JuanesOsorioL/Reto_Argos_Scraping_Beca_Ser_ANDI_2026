@@ -57,6 +57,14 @@ const CONFIG = {
   KEYWORDS_BUSQUEDA: [
     // Keyword genérica del rubro ferretero.
     'ferreterias',
+  ],
+
+
+
+/*
+ KEYWORDS_BUSQUEDA: [
+    // Keyword genérica del rubro ferretero.
+    'ferreterias',
     // Keyword orientada a depósitos de materiales.
     'depositos de materiales',
     // Keyword híbrida de depósitos y ferretería.
@@ -94,6 +102,10 @@ const CONFIG = {
     // Keyword sobre distribuidoras de cemento.
     'distribuidoras de cemento'
   ],
+*/
+
+
+
 
   // Agrupa la configuración de conexión a PostgreSQL.
   DB: {

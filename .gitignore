@@ -65,3 +65,12 @@ npm-debug.log
 
 serper.env
 foursquare.env
+.env
+
+
+
+
+ngrok/generated/n8n-ngrok.env
+#archivos anteriores que quiero dejar para analizar
+ngrok/sync-ngrok-url.sh
+ngrok/start-ngrok-and-refresh-n8n.ps1

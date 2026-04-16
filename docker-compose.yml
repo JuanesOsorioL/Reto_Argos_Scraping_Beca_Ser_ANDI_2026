@@ -1,5 +1,26 @@
 name: RetoArgos
 services:
+
+  ngrok-n8n:
+    build:
+      context: ./ngrok
+      dockerfile: Dockerfile
+    container_name: ngrok-n8n
+    restart: unless-stopped
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+      TARGET_HOST: ${TARGET_HOST}
+      TARGET_PORT: ${TARGET_PORT}
+    volumes:
+    - ./ngrok/generated:/shared
+    - ./ngrok/ngrok-entrypoint.sh:/ngrok-entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/ngrok-entrypoint.sh"]
+    ports:
+      - "4040:4040"
+    networks:
+      - automatizacion_net
+
+
   postgressArgos:
     image: postgres@sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2
     container_name: postgressArgos
@@ -27,6 +48,8 @@ services:
     restart: unless-stopped
     ports:
       - "2222:5678"
+    env_file:
+    - ./ngrok/generated/n8n-ngrok.env
     environment:
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: postgressArgos
@@ -34,10 +57,10 @@ services:
       DB_POSTGRESDB_DATABASE: postgres
       DB_POSTGRESDB_USER: postgres
       DB_POSTGRESDB_PASSWORD: 1234
-      N8N_HOST: Argos_n8n
+      #N8N_HOST: Argos_n8n
       N8N_PORT: 5678
       N8N_PROTOCOL: http
-      WEBHOOK_URL: http://localhost:2222/
+      #WEBHOOK_URL: http://localhost:2222/
       GENERIC_TIMEZONE: America/Bogota
     depends_on:
       postgressArgos:
@@ -268,7 +291,7 @@ services:
     # Variables de entorno
     environment:
       # Base de datos
-      DB_HOST: postgres           # Nombre del servicio PostgreSQL
+      DB_HOST: postgressArgos
       DB_PORT: 5432
       DB_NAME: postgres
       DB_USER: postgres
@@ -292,14 +315,14 @@ services:
       WEBHOOK_ON_ERROR: "http://host.docker.internal:5678/webhook/foursquare-error"
       
       # API Server
-      API_PORT: 8006
+      API_PORT: 8005
       API_HOST: 0.0.0.0
       DEBUG: "true"
     
     # Puertos: INTERNO:EXTERNO
     ports:
-      # FastAPI en puerto 8006
-      - "8006:8006"
+      # FastAPI en puerto 8005
+      - "8005:8005"
     
     # Volúmenes
     volumes:
@@ -314,7 +337,7 @@ services:
     
     # Dependencias: esperar a que PostgreSQL esté listo
     depends_on:
-      postgres:
+      postgressArgos:
         condition: service_healthy
     
     # Health check
