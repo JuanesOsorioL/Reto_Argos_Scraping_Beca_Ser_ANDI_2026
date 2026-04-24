@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from playwright.async_api import async_playwright, Page, BrowserContext, Response
 
 from config import (
-    CIUDADES, CIUDAD_DEPARTAMENTO, KEYWORDS_BUSQUEDA,
+    CIUDAD_DEPARTAMENTO, KEYWORDS_BUSQUEDA,  # ✅ Sin CIUDADES
     MAX_CONCURRENT_TABS, MIN_DELAY_SECONDS, MAX_DELAY_SECONDS,
     HEADLESS, OUTPUT_FILE, GUARDAR_JSONL_LOCAL
 )
@@ -318,15 +318,48 @@ STEALTH_SCRIPT = """
 """
 
 
-async def do_scrape():
+async def do_scrape(ciudades: list):
+    """
+    Scraper Google Maps con ciudades OBLIGATORIAS.
+    
+    Args:
+        ciudades: list[dict] — REQUERIDO, no puede ser None
+                  Ej: [{"municipio": "cali", "departamento": "Valle del Cauca"}, ...]
+    
+    Raises:
+        ValueError: Si ciudades es None o vacío
+    """
+    
+    # ✅ VALIDACIÓN OBLIGATORIA
+    if not ciudades:
+        raise ValueError(
+            "❌ CIUDADES REQUERIDAS EN PARÁMETRO. "
+            "api_runner.py debe enviar lista de ciudades en do_scrape(ciudades=[...])"
+        )
+    
+    if not isinstance(ciudades, list):
+        raise TypeError(f"ciudades debe ser list, recibió {type(ciudades)}")
+    
+    # Validar estructura de cada ciudad
+    for i, ciudad_obj in enumerate(ciudades):
+        if not isinstance(ciudad_obj, dict):
+            raise ValueError(f"Ciudad #{i} no es dict: {ciudad_obj}")
+        if "municipio" not in ciudad_obj or "departamento" not in ciudad_obj:
+            raise ValueError(
+                f"Ciudad #{i} debe tener 'municipio' y 'departamento': {ciudad_obj}"
+            )
+
+
+
+
     # Inicializar BD (crea tablas si no existen)
     init_db()
 
     # Caché desde la BD — no reprocesamos URLs ya guardadas
     procesados = cargar_urls_procesadas()
     print(f"[*] Caché BD: {len(procesados)} negocios ya guardados (serán saltados).")
-    print(f"[*] Ciudades: {len(CIUDADES)} | Keywords: {len(KEYWORDS_BUSQUEDA)} | "
-          f"Combinaciones: {len(CIUDADES) * len(KEYWORDS_BUSQUEDA)}\n")
+    print(f"[*] Ciudades: {len(ciudades)} | Keywords: {len(KEYWORDS_BUSQUEDA)} | "
+          f"Combinaciones: {len(ciudades) * len(KEYWORDS_BUSQUEDA)}\n")
 
     # run_id y timestamp únicos para esta ejecución completa
     run_id           = str(uuid.uuid4())
@@ -357,7 +390,8 @@ async def do_scrape():
         await context.add_init_script(STEALTH_SCRIPT)
 
         for keyword in KEYWORDS_BUSQUEDA:
-            for ciudad in CIUDADES:
+            for ciudad_obj in ciudades:  # ✅ Ciudades vienen dinámicas
+                ciudad = ciudad_obj["municipio"]
                 print(f"\n[*] Buscando: '{keyword}' en '{ciudad}'...")
                 page = await context.new_page()
                 try:

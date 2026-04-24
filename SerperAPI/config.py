@@ -124,27 +124,8 @@ if not DB_CONFIG["host"] or not DB_CONFIG["user"]:
 # BÚSQUEDA: KEYWORDS Y CIUDADES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Lista de keywords a buscar (ferreterías, construcción, materiales)
-KEYWORDS_BUSQUEDA = [
-    "ferreterias"
-]
-
-# Lista de ciudades donde buscar
-CIUDADES = [
-    "bogota"
-]
-
-# Mapeo ciudad → departamento (para enriquecimiento de datos)
-CIUDAD_DEPARTAMENTO = {
-    "bogota": "Cundinamarca",
-}
-
-
-
 
 """
-
-# Lista de keywords a buscar (ferreterías, construcción, materiales)
 KEYWORDS_BUSQUEDA = [
     "ferreterias", "depositos de materiales", "depositos y ferreteria",
     "bodegas de construccion", "centro ferretero", "materiales para construccion",
@@ -154,21 +135,12 @@ KEYWORDS_BUSQUEDA = [
     "distribuidoras de cemento"
 ]
 
-# Lista de ciudades donde buscar
-CIUDADES = [
-    "bogota", "medellin", "cali", "barranquilla", "cartagena", "bucaramanga",
-    "cucuta", "pereira", "santa-marta", "ibague", "pasto", "manizales",
-    "neiva", "villavicencio", "armenia", "valledupar", "monteria", "sincelejo",
-    "popayan", "tunja", "riohacha", "florencia", "quibdo", "yopal", "arauca",
-    "bello", "itagui", "envigado", "sabaneta", "rionegro", "apartado",
-    "caucasia", "turbo", "dosquebradas", "santa-rosa-de-cabal", "calarca",
-    "soacha", "chia", "zipaquira", "facatativa", "fusagasuga", "girardot",
-    "mosquera", "madrid", "funza", "duitama", "sogamoso", "chiquinquira",
-    "palmira", "buenaventura", "tulua", "cartago", "buga", "jamundi", "yumbo", "tumaco",
-    "soledad", "malambo", "cienaga", "magangue", "maicao", "aguachica",
-    "floridablanca", "giron", "piedecuesta", "barrancabermeja", "pamplona", "ocana",
-    "pitalito", "garzon", "espinal", "ipiales"
+"""
+# Lista de keywords a buscar (ferreterías, construcción, materiales)
+KEYWORDS_BUSQUEDA = [
+    "ferreterias"
 ]
+
 
 # Mapeo ciudad → departamento (para enriquecimiento de datos)
 CIUDAD_DEPARTAMENTO = {
@@ -200,7 +172,7 @@ CIUDAD_DEPARTAMENTO = {
     "ocana": "Norte de Santander", "pitalito": "Huila", "garzon": "Huila",
     "espinal": "Tolima", "ipiales": "Nariño",
 }
-"""
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,7 @@
+FROM docker:cli AS dockercli
+
+FROM docker.n8n.io/n8nio/n8n@sha256:52bc65540cbfb6f8b5320bafaf28bcc018ae08124bb0a7cbf5ca7f044b54d698
+
+USER root
+COPY --from=dockercli /usr/local/bin/docker /usr/local/bin/docker
+USER node

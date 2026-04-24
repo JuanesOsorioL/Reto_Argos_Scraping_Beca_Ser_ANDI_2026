@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 
 from config import (
     OUTPUT_DIR, RAW_JSON_FILE, FLAT_JSON_FILE,
-    SERPER_SLEEP_SECONDS, KEYWORDS_BUSQUEDA, CIUDADES, CIUDAD_DEPARTAMENTO,
+    SERPER_SLEEP_SECONDS, KEYWORDS_BUSQUEDA, CIUDAD_DEPARTAMENTO,
     SAVE_JSON_BACKUP, PROGRESS_FILE, SAVE_PROGRESS_FILE,
     AUTO_RESUME_ON_RATE_LIMIT, RATE_LIMIT_SLEEP_SECONDS, MAX_CONSECUTIVE_RATE_LIMITS,
 )
@@ -124,13 +124,14 @@ def save_progress(data: dict):
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
 
-def build_queries(limit_keywords=None, limit_cities=None):
+def build_queries(ciudades: list, limit_keywords=None):
     """
     Genera todas las combinaciones de keyword × ciudad.
     
     Args:
+        ciudades (list[dict]): REQUERIDO. Lista de ciudades a procesar
+            Ej: [{"municipio": "bogota", "departamento": "Cundinamarca"}, ...]
         limit_keywords (int): Si es int, tomar solo los primeros N keywords
-        limit_cities (int): Si es int, tomar solo los primeros N ciudades
     
     Returns:
         list: Lista de dicts con estructura:
@@ -145,22 +146,28 @@ def build_queries(limit_keywords=None, limit_cities=None):
             ]
     
     Ejemplo:
-        >>> queries = build_queries(limit_keywords=2, limit_cities=3)
-        >>> len(queries)  # 2 × 3 = 6 queries
-        6
+        >>> ciudades = [{"municipio": "bogota", "departamento": "Cundinamarca"}]
+        >>> queries = build_queries(ciudades, limit_keywords=2)
+        >>> len(queries)  # 2 queries
+        2
     """
-    # Limitar si se especifica (útil para modo prueba)
+    # Validar ciudades
+    if not ciudades or not isinstance(ciudades, list):
+        raise ValueError("ciudades debe ser una lista no vacía")
+    
+    # Limitar keywords si se especifica (útil para modo prueba)
     keywords = KEYWORDS_BUSQUEDA[:limit_keywords] if limit_keywords else KEYWORDS_BUSQUEDA
-    ciudades = CIUDADES[:limit_cities] if limit_cities else CIUDADES
     
     queries = []
     for keyword in keywords:
-        for ciudad in ciudades:
+        for ciudad_obj in ciudades:  # ✅ Ahora ciudad_obj es dict
+            ciudad = ciudad_obj["municipio"]  # Extraer nombre
+            departamento = ciudad_obj["departamento"]  # Extraer departamento
             ciudad_texto = normalize_city(ciudad)
             queries.append({
                 "keyword":     keyword,
                 "ciudad":      ciudad,
-                "departamento": CIUDAD_DEPARTAMENTO.get(ciudad, ""),
+                "departamento": departamento,  # ✅ Del parámetro, no de CIUDAD_DEPARTAMENTO
                 "query":       f"{keyword} en {ciudad_texto}, Colombia",
             })
     return queries
@@ -170,26 +177,27 @@ def build_queries(limit_keywords=None, limit_cities=None):
 # FUNCIÓN PRINCIPAL: do_scrape
 # ═══════════════════════════════════════════════════════════════════════════════
 
-async def do_scrape(limit_keywords=None, limit_cities=None, page=1):
+async def do_scrape(ciudades: list, limit_keywords=None, page=1):
     """
     Función principal del scraping Serper.
     
     Flujo:
-      1. Inicializar BD y directorios
-      2. Generar todas las queries
-      3. Para cada query:
-         a. Verificar si ya fue procesada (reanudación)
-         b. Llamar a Serper
-         c. Manejar 429 con reintentos automáticos
-         d. Aplana y enriquece resultados
-         e. Inserta en PostgreSQL
-         f. Guarda progreso
-      4. Guarda JSON local si está habilitado
-      5. Retorna métricas finales
+        1. Inicializar BD y directorios
+        2. Generar todas las queries con ciudades dinámicas
+        3. Para cada query:
+            a. Verificar si ya fue procesada (reanudación)
+            b. Llamar a Serper
+            c. Manejar 429 con reintentos automáticos
+            d. Aplana y enriquece resultados
+            e. Inserta en PostgreSQL
+            f. Guarda progreso
+        4. Guarda JSON local si está habilitado
+        5. Retorna métricas finales
     
     Args:
+        ciudades (list[dict]): REQUERIDO. Lista de ciudades a procesar
+            Ej: [{"municipio": "bogota", "departamento": "Cundinamarca"}, ...]
         limit_keywords (int): Opcional, solo procesar primeros N keywords
-        limit_cities (int): Opcional, solo procesar primeras N ciudades
         page (int): Página de resultados a scraping (defecto: 1)
     
     Raises:
@@ -224,8 +232,12 @@ async def do_scrape(limit_keywords=None, limit_cities=None, page=1):
     init_db()  # Crear tablas si no existen
     
     # ─── GENERAR QUERIES ────────────────────────────────────────────────────
+    # ✅ Validar ciudades
+    if not ciudades or not isinstance(ciudades, list):
+        raise ValueError("❌ CIUDADES REQUERIDAS EN PARÁMETRO")
+    
     run_id  = str(uuid.uuid4())
-    queries = build_queries(limit_keywords=limit_keywords, limit_cities=limit_cities)
+    queries = build_queries(ciudades=ciudades, limit_keywords=limit_keywords)  # ✅ Pasar ciudades
     
     # ─── MOSTRAR INICIO EN LOGS ─────────────────────────────────────────────
     print(f"\n{'='*80}")

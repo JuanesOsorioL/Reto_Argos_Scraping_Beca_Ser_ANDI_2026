@@ -1,29 +1,3 @@
-"""
-
-
-CIUDADES = [
-    # ---- Capitales Principales ----
-    "bogota", "medellin", "cali", "barranquilla", "cartagena", "bucaramanga",
-    "cucuta", "pereira", "santa-marta", "ibague", "pasto", "manizales",
-    "neiva", "villavicencio", "armenia", "valledupar", "monteria", "sincelejo",
-    "popayan", "tunja", "riohacha", "florencia", "quibdo", "yopal", "arauca",
-
-    # ---- Antioquia y Eje Cafetero ----
-    "bello", "itagui", "envigado", "sabaneta", "rionegro", "apartado",
-    "caucasia", "turbo", "dosquebradas", "santa-rosa-de-cabal", "calarca",
-
-    # ---- Cundinamarca y Boyacá ----
-    "soacha", "chia", "zipaquira", "facatativa", "fusagasuga", "girardot",
-    "mosquera", "madrid", "funza", "duitama", "sogamoso", "chiquinquira",
-
-    # ---- Valle y Pacífico ----
-    "palmira", "buenaventura", "tulua", "cartago", "buga", "jamundi", "yumbo", "tumaco",
-
-    # ---- Costa, Santanderes y Otros ----
-    "soledad", "malambo", "cienaga", "magangue", "maicao", "aguachica",
-    "floridablanca", "giron", "piedecuesta", "barrancabermeja", "pamplona", "ocana",
-    "pitalito", "garzon", "espinal", "ipiales"
-]
 
 CIUDAD_DEPARTAMENTO = {
     "bogota": "Cundinamarca", "medellin": "Antioquia", "cali": "Valle del Cauca",
@@ -55,6 +29,8 @@ CIUDAD_DEPARTAMENTO = {
     "espinal": "Tolima", "ipiales": "Nariño",
 }
 
+"""
+
 KEYWORDS_BUSQUEDA = [
     "ferreterias",
     "depositos-de-materiales",
@@ -76,18 +52,7 @@ KEYWORDS_BUSQUEDA = [
     "prefabricados-de-concreto",
     "distribuidoras-de-cemento"
 ]
-
-
 """
-
-CIUDADES = [
-    # ---- Capitales Principales ----
-    "bogota"
-]
-
-CIUDAD_DEPARTAMENTO = {
-    "bogota": "Cundinamarca"
-}
 
 KEYWORDS_BUSQUEDA = [
     "ferreterias"

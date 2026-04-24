@@ -25,6 +25,16 @@ from datetime import datetime
 from config import API_PORT, API_HOST, OUTPUT_FILE, JSON_RAW_FILE, JSON_FLAT_FILE, PROGRESS_FILE
 from db import init_db, obtener_estadisticas
 from main import do_scrape
+from pydantic import BaseModel
+from typing import List
+
+class UbicacionModel(BaseModel):
+    municipio: str
+    departamento: str
+
+class ScrapFoursquareRequest(BaseModel):
+    """Body REQUERIDO para POST /scrape/foursquare"""
+    selected_locations: List[UbicacionModel]
 
 # ──────────────────────────────────────────────────────────────────────────────
 # INICIALIZACIÓN DE FASTAPI
@@ -59,23 +69,43 @@ estado_global = {
     "ultimo_error": None,
     "en_pausa": False,
     "pausa_razon": None,
+    "ciudades_actual": None,  # ← AGREGAR ESTO
 }
 
+def calcular_duracion(inicio_iso: str | None, fin_iso: str | None):
+    if not inicio_iso or not fin_iso:
+        return None
+    try:
+        inicio = datetime.fromisoformat(inicio_iso)
+        fin = datetime.fromisoformat(fin_iso)
+        duracion_s = max(0, round((fin - inicio).total_seconds()))
+        return f"{duracion_s // 60}m {duracion_s % 60}s"
+    except Exception:
+        return None
 
-async def ejecutar_background(run_id: str):
+async def ejecutar_background(run_id: str, ciudades: List[dict]):
     """
     Ejecuta el scraping en background (no bloquea la API).
     
     Args:
         run_id: UUID de la corrida
+        ciudades: list[dict] de ciudades a procesar
     """
     global estado_global
     try:
         print(f"\n[API] 🚀 Iniciando scraping con run_id: {run_id}")
-        await do_scrape()
+        print(f"[API] 📍 Ciudades: {[c['municipio'] for c in ciudades]}")
+        metricas = await do_scrape(ciudades=ciudades,run_idfinal=run_id)  # ✅ PASAR CIUDADES y runid
         
         fin = datetime.now()
         duracion = (fin - datetime.fromisoformat(estado_global["inicio"])).total_seconds()
+        duracion = None
+
+        if isinstance(metricas, dict):
+            duracion = metricas.get("duracion")
+
+        if not duracion:
+            duracion = calcular_duracion(estado_global["inicio"], fin)
         
         estado_global.update({
             "scraping_en_curso": False,
@@ -182,9 +212,17 @@ def get_progress():
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/scrape/foursquare", tags=["Scraping"])
-async def run_scraper():
+async def run_scraper(request: ScrapFoursquareRequest):
     """
-    Inicia un nuevo scraping de Foursquare.
+    Inicia un nuevo scraping de Foursquare con ciudades dinámicas.
+    
+    Body REQUERIDO:
+    {
+        "selected_locations": [
+            {"municipio": "bogota", "departamento": "Cundinamarca"},
+            {"municipio": "cali", "departamento": "Valle del Cauca"}
+        ]
+    }
     
     Returns:
         {
@@ -198,44 +236,67 @@ async def run_scraper():
     """
     global estado_global
     
-    # Validar que no haya otro scraping en curso
-    if estado_global["scraping_en_curso"]:
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "status": "ocupado",
-                "run_id": estado_global["run_id"],
-                "mensaje": "Scraping ya en curso. Espera a que termine."
+    # ✅ Validar que haya ciudades
+    if not request.selected_locations or len(request.selected_locations) == 0:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "detail": "selected_locations es obligatorio y debe tener al menos una ciudad"
             }
         )
     
-    # Generar nuevo run_id
-    run_id = str(uuid.uuid4())
-    inicio = datetime.now()
+    # Validar que no haya otro scraping en curso
+    if estado_global["scraping_en_curso"]:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "status": "ocupado",
+                "mensaje": "Ya hay un scraping en curso.",
+                "run_id": estado_global["run_id"],
+                "inicio": estado_global["inicio"],
+            }
+        )
     
-    # Actualizar estado global
+    # ✅ Convertir a list[dict]
+    ciudades = [
+        {
+            "municipio": loc.municipio.lower(),
+            "departamento": loc.departamento
+        }
+        for loc in request.selected_locations
+    ]
+    
+    run_id = str(uuid.uuid4())
+    inicio = datetime.now().isoformat()
+    
+    # Inicializar BD
+    init_db()
+    
+    # Actualizar estado
     estado_global.update({
         "scraping_en_curso": True,
         "run_id": run_id,
-        "inicio": inicio.isoformat(),
+        "inicio": inicio,
         "fin": None,
         "duracion": None,
         "ultimo_status": "corriendo",
         "ultimo_error": None,
         "en_pausa": False,
+        "pausa_razon": None,
+        "ciudades_actual": ciudades,  # ← AGREGAR
     })
     
-    # Inicializar BD
-    init_db()
-    
-    # Ejecutar en background (no bloquea la API)
-    asyncio.create_task(ejecutar_background(run_id))
+    # ✅ PASAR CIUDADES A BACKGROUND
+    asyncio.create_task(ejecutar_background(run_id, ciudades))
     
     return {
         "status": "iniciado",
-        "mensaje": "Scraping disparado. Consulta /status para ver progreso.",
+        "mensaje": "Scraper disparado con ciudades dinámicas.",
         "run_id": run_id,
-        "inicio": inicio.isoformat(),
+        "inicio": inicio,
+        "ciudades": ciudades,  # ← AGREGAR
+        "cantidad_ciudades": len(ciudades),  # ← AGREGAR
     }
 
 

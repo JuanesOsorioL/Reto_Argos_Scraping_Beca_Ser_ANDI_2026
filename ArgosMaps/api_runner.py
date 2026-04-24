@@ -16,18 +16,51 @@ Endpoints:
     GET  /endpoints            → lista endpoints expuestos
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import asyncio
 import uvicorn
 import uuid
 import os
+from typing import List
 from datetime import datetime, timedelta
 import httpx
 from dotenv import load_dotenv
 load_dotenv()
 
-app = FastAPI(title="Argos Scraper API")
+app = FastAPI(title="Argos Scraper API - CIUDADES OBLIGATORIAS")
+
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# MODELOS PYDANTIC — Ciudades OBLIGATORIAS en body
+# ──────────────────────────────────────────────────────────────────────────────
+
+class UbicacionModel(BaseModel):
+    """Modelo para cada ciudad/municipio."""
+    municipio: str
+    departamento: str
+
+
+class ScrapGoogleMapsRequest(BaseModel):
+    """
+    Body REQUERIDO para POST /scrape/google-maps
+    
+    SIEMPRE debe incluir selected_locations.
+    NO PUEDE ser null o vacío.
+    
+    Ejemplo:
+    {
+        "selected_locations": [
+            {"municipio": "cali", "departamento": "Valle del Cauca"},
+            {"municipio": "bogota", "departamento": "Cundinamarca"}
+        ]
+    }
+    """
+    selected_locations: List[UbicacionModel]  # ✅ REQUERIDO, no opcional
+
+
 
 # URL fija del webhook de n8n.
 # todo en docker
@@ -43,6 +76,7 @@ estado = {
     "ultimo_status": "sin_correr",  # sin_correr | corriendo | ok | error
     "ultimo_error": None,
     "metricas": None,
+    "ciudades_actual": None,  # ← Guardar qué ciudades se están procesando
 }
 
 
@@ -88,17 +122,18 @@ async def notificar_fin_run(payload: dict, headers: dict | None = None):
         print(f"[CALLBACK] Falló envío a n8n: {e}")
 
 
-async def ejecutar_scraper_background(run_id: str):
+async def ejecutar_scraper_background(run_id: str, ciudades: List[dict]):
     """
     Corre el scraper en segundo plano sin bloquear la respuesta HTTP.
+    AHORA RECIBE CIUDADES COMO PARÁMETRO.
     Al finalizar, actualiza estado y notifica a n8n.
     """
     global estado
     try:
         from main import do_scrape
 
-        # Si do_scrape retorna métricas, las guardamos
-        metricas = await do_scrape()
+         # ✅ IMPORTANTE: Pasar ciudades a do_scrape()
+        metricas = await do_scrape(ciudades=ciudades)
 
         fin = datetime.now().isoformat()
         duracion = None
@@ -128,6 +163,7 @@ async def ejecutar_scraper_background(run_id: str):
             "inicio": estado["inicio"],
             "fin": estado["fin"],
             "duracion": estado["duracion"],
+            "ciudades": estado["ciudades_actual"],  # ← Incluir ciudades
             "metricas": estado["metricas"],
             "origen": "api_runner",
             "tipo_ejecucion": "produccion"
@@ -155,6 +191,7 @@ async def ejecutar_scraper_background(run_id: str):
             "inicio": estado["inicio"],
             "fin": estado["fin"],
             "duracion": estado["duracion"],
+            "ciudades": estado["ciudades_actual"],  # ← Incluir ciudades
             "error": str(e),
             "origen": "api_runner",
             "tipo_ejecucion": "produccion"
@@ -179,15 +216,26 @@ def status():
         "inicio": estado["inicio"],
         "fin": estado["fin"],
         "duracion": estado["duracion"],
+        "ciudades_actual": estado["ciudades_actual"],  # ← Nuevo
         "error": estado["ultimo_error"],
         "metricas": estado["metricas"],
     }
 
 
 @app.post("/scrape/google-maps")
-async def run_scraper():
+async def run_scraper(request: ScrapGoogleMapsRequest):
     """
-    Dispara el scraper y responde inmediatamente.
+    Dispara el scraper con ciudades OBLIGATORIAS en body.
+    
+    Body REQUERIDO:
+    {
+        "selected_locations": [
+            {"municipio": "cali", "departamento": "Valle del Cauca"},
+            {"municipio": "bogota", "departamento": "Cundinamarca"}
+        ]
+    }
+    
+    Retorna: run_id inmediatamente (scraper corre en background)
     """
     global estado
 
@@ -201,6 +249,25 @@ async def run_scraper():
                 "inicio": estado["inicio"],
             }
         )
+    
+    # ✅ Validar que haya al menos una ciudad
+    if not request.selected_locations or len(request.selected_locations) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="selected_locations es obligatorio y debe tener al menos una ciudad"
+        )
+
+    # Convertir a list[dict] para do_scrape()
+    ciudades = [
+        {
+       
+            "municipio": loc.municipio.lower(),  # Normalizar a lowercase
+            "departamento": loc.departamento
+        }
+        for loc in request.selected_locations
+    ]
+
+
 
     run_id = str(uuid.uuid4())
     inicio = datetime.now().isoformat()
@@ -214,15 +281,19 @@ async def run_scraper():
         "ultimo_status": "corriendo",
         "ultimo_error": None,
         "metricas": None,
+        "ciudades_actual": ciudades,  # ← Guardar ciudades
     })
 
-    asyncio.create_task(ejecutar_scraper_background(run_id))
+    # ✅ PASAR CIUDADES A BACKGROUND
+    asyncio.create_task(ejecutar_scraper_background(run_id, ciudades))
 
     return {
         "status": "iniciado",
-        "mensaje": "Scraper disparado. Consulta /status para ver el progreso.",
+        "mensaje": "Scraper disparado con ciudades dinámicas.",
         "run_id": run_id,
         "inicio": inicio,
+        "ciudades": ciudades,
+        "cantidad_ciudades": len(ciudades),
         "webhook_n8n": N8N_WEBHOOK_URL,
     }
 
@@ -237,6 +308,7 @@ def resultado():
         "duracion": estado["duracion"],
         "error": estado["ultimo_error"],
         "en_curso": estado["scraping_en_curso"],
+        "ciudades": estado["ciudades_actual"],  # ← Nuevo
         "metricas": estado["metricas"],
     }
 
@@ -325,12 +397,17 @@ def endpoints():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8001"))
 
+    print(f"🚀 Argos Scraper API — CIUDADES OBLIGATORIAS")
     print(f"🚀 Argos Scraper API corriendo en http://localhost:{port}")
     print(f"   n8n debe usar: http://host.docker.internal:{port}")
     print(f"   Prueba local:  http://localhost:{port}/status")
     print(f"   Webhook n8n:   {N8N_WEBHOOK_URL}")
-    print(f"   GET  /health")
-    print(f"   POST /scrape/google-maps")
+    print(f"\n📍 IMPORTANTE: POST /scrape/google-maps REQUIERE:")
+    print(f'   {{"selected_locations": [{{"municipio": "...", "departamento": "..."}}]}}')
+
+
+    print(f"\n    GET  /health")
+    print(f"   POST /scrape/google-maps  ← REQUIERE ciudades")
     print(f"   GET  /status")
     print(f"   GET  /resultado")
     print(f"   POST /test/callback")

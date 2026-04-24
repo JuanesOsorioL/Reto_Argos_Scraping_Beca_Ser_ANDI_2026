@@ -34,7 +34,16 @@ def guardar_jsonl_local(datos: dict):
         f.write(json.dumps(datos_serializables, ensure_ascii=False) + "\n")
 
 
-async def main():
+async def main(ciudades: list):
+    """
+    ciudades: list[dict] — REQUERIDO
+    Ej: [{"municipio": "cali", "departamento": "Valle del Cauca"}, ...]
+    """
+    if not ciudades:
+        raise ValueError("❌ CIUDADES REQUERIDAS EN PARÁMETRO")
+    if not isinstance(ciudades, list):
+        raise TypeError(f"ciudades debe ser list, recibió {type(ciudades)}")
+    
     init_db()
 
     procesados       = cargar_urls_procesadas()
@@ -42,13 +51,16 @@ async def main():
     fecha_extraccion = datetime.now(timezone.utc)
 
     print(f"[*] Caché BD: {len(procesados)} URLs ya procesadas.")
+    print(f"[*] Ciudades: {len(ciudades)}")
+    print(f"[*] Keywords: {len(config.KEYWORDS_BUSQUEDA)}")
     print(f"[*] run_id:   {run_id}")
     print(f"[*] Inicio:   {fecha_extraccion.isoformat()}\n")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=config.HEADLESS)
 
-        for ciudad in config.CIUDADES:
+        for ciudad_obj in ciudades:  # ✅ Dinámico
+            ciudad = ciudad_obj["municipio"]
             for keyword in config.KEYWORDS_BUSQUEDA:
                 print(f"\n{'='*50}")
                 print(f"[*] {ciudad} → {keyword}")
@@ -180,4 +192,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Ejemplo: ejecutar con ciudades específicas
+    ciudades_ejemplo = [
+        {"municipio": "bogota", "departamento": "Cundinamarca"}
+    ]
+    asyncio.run(main(ciudades=ciudades_ejemplo))

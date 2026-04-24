@@ -53,15 +53,14 @@ const CONFIG = {
     'Accept-Language':'es-ES,es;q=0.8'
   },
 
-  // Lista de keywords objetivo alineadas al universo de negocio del proyecto Argos.
-  KEYWORDS_BUSQUEDA: [
-    // Keyword genérica del rubro ferretero.
-    'ferreterias',
-  ],
+
+
 
 
 
 /*
+
+
  KEYWORDS_BUSQUEDA: [
     // Keyword genérica del rubro ferretero.
     'ferreterias',
@@ -103,6 +102,13 @@ const CONFIG = {
     'distribuidoras de cemento'
   ],
 */
+
+ KEYWORDS_BUSQUEDA: [
+    // Keyword genérica del rubro ferretero.
+    'bodegas de construccion',
+
+  ],
+
 
 
 

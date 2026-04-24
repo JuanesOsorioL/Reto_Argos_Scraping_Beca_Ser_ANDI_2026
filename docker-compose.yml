@@ -1,6 +1,35 @@
 name: RetoArgos
 services:
 
+  validar-ciudades-api:
+    build:
+      context: ./ValidarCiudadesAPI
+      dockerfile: Dockerfile
+    container_name: validar-ciudades-api
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      PORT: 8003
+
+      # OpenRouter opcional
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openrouter/free}
+
+      # Si luego quieres callback a n8n
+      N8N_WEBHOOK_URL: http://Argos_n8n:5678/webhook/ValidarCiudades
+    depends_on:
+      argos_n8n:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - automatizacion_net
+
   ngrok-n8n:
     build:
       context: ./ngrok
@@ -19,7 +48,6 @@ services:
       - "4040:4040"
     networks:
       - automatizacion_net
-
 
   postgressArgos:
     image: postgres@sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2
@@ -42,9 +70,13 @@ services:
     networks:
       - automatizacion_net
 
-  Argos_n8n:
-    image: docker.n8n.io/n8nio/n8n@sha256:52bc65540cbfb6f8b5320bafaf28bcc018ae08124bb0a7cbf5ca7f044b54d698
-    container_name: Argos_n8n
+  argos_n8n:
+    #image: docker.n8n.io/n8nio/n8n@sha256:52bc65540cbfb6f8b5320bafaf28bcc018ae08124bb0a7cbf5ca7f044b54d698
+    build:
+      context: ./n8n
+      dockerfile: Dockerfile
+    container_name: argos_n8n
+    user: root
     restart: unless-stopped
     ports:
       - "2222:5678"
@@ -62,11 +94,25 @@ services:
       N8N_PROTOCOL: http
       #WEBHOOK_URL: http://localhost:2222/
       GENERIC_TIMEZONE: America/Bogota
+      N8N_ENABLE_EXECUTE_COMMAND: true
+      NODES_EXCLUDE: "[]"
+      N8N_ENCRYPTION_KEY: "yU11TiIfoQ8Z/Aakhr9qAg/QRcsSF3oE"
+      # 🔥 Optimización RAM
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: all
+      EXECUTIONS_DATA_MAX_AGE: 24
+      EXECUTIONS_DATA_SAVE_ON_ERROR: all
+      EXECUTIONS_DATA_PRUNE: true
+
+      # 🧹 Menos overhead
+      N8N_DIAGNOSTICS_ENABLED: false
+      N8N_METRICS: false
+
     depends_on:
       postgressArgos:
         condition: service_healthy
     volumes:
       - n8n_data:/home/node/.n8n
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - automatizacion_net
 
@@ -311,7 +357,8 @@ services:
       
       # Webhooks a n8n
       WEBHOOK_ON_PAUSE: "http://host.docker.internal:5678/webhook/foursquare-pause"
-      WEBHOOK_ON_COMPLETE: "http://host.docker.internal:5678/webhook/foursquare-complete"
+      WEBHOOK_ON_COMPLETE: http://Argos_n8n:5678/webhook/foursquare-complete
+      #WEBHOOK_ON_COMPLETE: "http://host.docker.internal:5678/webhook/foursquare-complete"
       WEBHOOK_ON_ERROR: "http://host.docker.internal:5678/webhook/foursquare-error"
       
       # API Server

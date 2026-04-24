@@ -22,6 +22,17 @@ import os
 from datetime import datetime, timedelta
 import httpx
 
+from pydantic import BaseModel
+from typing import List
+
+class UbicacionModel(BaseModel):
+    municipio: str
+    departamento: str
+
+class ScrapOpenstreetmapRequest(BaseModel):
+    """Body REQUERIDO para POST /scrape/overpass"""
+    selected_locations: List[UbicacionModel]
+    
 app = FastAPI(title="Argos Scraper — Overpass API")
 
 PORT = int(os.getenv("PORT", "8007"))
@@ -81,12 +92,24 @@ async def notificar_fin_run(payload: dict, headers: dict | None = None):
         print(f"[CALLBACK] Falló envío a n8n: {e}")
 
 
-async def ejecutar_background(opciones: dict, tipo_ejecucion: str):
+async def ejecutar_background(run_id: str, opciones: dict, tipo_ejecucion: str):
+    """
+    Ejecuta el scraping en background.
+    
+    Args:
+        run_id: UUID único generado en iniciar()  ← NUEVO PARÁMETRO
+        opciones: dict con configuración
+        tipo_ejecucion: "produccion" | "prueba" | "departamento"
+    """
     global estado
     try:
         from main import do_scrape
 
-        metricas = await do_scrape(opciones)
+        # ✅ EXTRAER MUNICIPIOS DEL DICT opciones
+        municipios = opciones.get("municipios", [])
+        
+        # ✅ PASAR run_id Y municipios
+        metricas = await do_scrape(run_id=run_id, municipios=municipios)
 
         fin = datetime.now().isoformat()
         duracion = None
@@ -170,7 +193,7 @@ def iniciar(opciones: dict, tipo_ejecucion: str) -> dict:
         "opciones": opciones,
     })
 
-    asyncio.create_task(ejecutar_background(opciones, tipo_ejecucion))
+    asyncio.create_task(ejecutar_background(run_id, opciones, tipo_ejecucion))
 
     return {
         "status": "iniciado",
@@ -203,15 +226,45 @@ def status():
 
 
 @app.post("/scrape/overpass")
-async def run_completo():
+async def run_scraper(request: ScrapOpenstreetmapRequest):
+    """
+    Inicia scraping Overpass con municipios dinámicos.
+    
+    Body REQUERIDO:
+    {
+        "selected_locations": [
+            {"municipio": "Bogotá", "departamento": "Cundinamarca"},
+            {"municipio": "Medellín", "departamento": "Antioquia"}
+        ]
+    }
+    """
+    
     if estado["scraping_en_curso"]:
         return JSONResponse(
             status_code=409,
             content={"status": "ocupado", "run_id": estado["run_id"]}
         )
-
-    from municipios_colombia import get_municipios
-    return iniciar({"municipios": get_municipios()}, "produccion")
+    
+    # ✅ Validar que haya municipios
+    if not request.selected_locations or len(request.selected_locations) == 0:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "detail": "selected_locations es obligatorio y debe tener al menos un municipio"
+            }
+        )
+    
+    # ✅ Convertir a list[dict]
+    municipios = [
+        {
+            "municipio": loc.municipio,
+            "departamento": loc.departamento
+        }
+        for loc in request.selected_locations
+    ]
+    
+    return iniciar({"municipios": municipios}, "produccion")
 
 
 @app.post("/scrape/overpass/prueba")

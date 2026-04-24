@@ -51,15 +51,18 @@ MAX_INTENTOS        = 4     # intentos totales (no por endpoint)
 ESPERA_SOBRECARGA   = 60    # si todos fallan, esperar 60s antes del último reintento
 
 # Regex para text_search — más simple = más rápido en el servidor
-TEXT_REGEX = r"(ferreter|cement|concret|morter|bloquera|ladriller|prefabric|deposito|material)"
+#TEXT_REGEX = r"(ferreter|cement|concret|morter|bloquera|ladriller|prefabric|deposito|material|distribuidor|bodegas|materiales)"
+TEXT_REGEX = r"(ferreter)"
 
 # 5 familias de tags OSM
+
 FAMILIAS_OSM = {
     "hardware": {
         "descripcion": "Ferreterías (shop=hardware)",
         "tags":        'nwr["shop"="hardware"](area.a);',
         "es_regex":    False,
-    },
+    }
+    ,
     "building_materials": {
         "descripcion": "Materiales de construcción (shop=building_materials)",
         "tags":        'nwr["shop"="building_materials"](area.a);',
@@ -81,6 +84,12 @@ FAMILIAS_OSM = {
         "es_regex":    True,   # marcado para pausas extra
     },
 }
+
+
+
+
+
+
 
 # Score Argos
 CIIU_RELEVANTES = {"4752", "4753", "4659", "4690", "2394", "2395"}
@@ -473,14 +482,40 @@ def append_jsonl(filepath: Path, obj: dict):
 
 # ─── Orquestador ─────────────────────────────────────────────────────────────
 
-async def do_scrape(opciones: dict = None):
-    if opciones is None:
-        opciones = {}
+async def do_scrape(run_id: str, municipios: list = None):
+    """
+    Función principal del scraping Overpass.
+    
+    Args:
+        run_id (str): REQUERIDO. UUID único generado en api_runner
+        municipios (list[dict]): REQUERIDO. Lista de municipios a procesar
+            Ej: [
+                {"municipio": "Bogotá", "departamento": "Cundinamarca"},
+                {"municipio": "Medellín", "departamento": "Antioquia"}
+            ]
+    
+    Si municipios es None: LANZA ERROR
+    """
+    
+    # ✅ VALIDACIÓN OBLIGATORIA
+    if not run_id:
+        raise ValueError("❌ RUN_ID REQUERIDO EN PARÁMETRO")
+    
+    if not municipios or not isinstance(municipios, list):
+        raise ValueError(
+            "❌ MUNICIPIOS REQUERIDOS EN PARÁMETRO. "
+            "API debe enviar lista de municipios con estructura: "
+            "[{'municipio': 'nombre', 'departamento': 'depto'}, ...]"
+        )
+    
+    # Validar estructura
+    for i, m in enumerate(municipios):
+        if not isinstance(m, dict) or "municipio" not in m or "departamento" not in m:
+            raise ValueError(
+                f"Municipio #{i} debe tener 'municipio' y 'departamento': {m}"
+            )
 
-    from municipios_colombia import get_municipios
-    municipios = opciones.get("municipios", get_municipios())
-
-    run_id    = str(uuid.uuid4())
+    # ✅ run_id VIENE DEL PARÁMETRO, NO SE GENERA AQUÍ
     inicio_at = datetime.now(timezone.utc)
 
     setup_logging()
@@ -488,14 +523,6 @@ async def do_scrape(opciones: dict = None):
     if SAVE_OUTPUT_FILES:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-
-    """
-    Antes
-    
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    setup_logging()
-    """
-    
 
     log.info("=" * 60)
     log.info(f"OVERPASS SCRAPER — run_id: {run_id}")
@@ -534,7 +561,8 @@ async def do_scrape(opciones: dict = None):
     total_jobs = len(municipios) * len(FAMILIAS_OSM)
     job_num    = 0
 
-    for muni_info in municipios:
+    # ✅ Municipios ya vienen dinámicos en el parámetro
+    for muni_info in municipios:  # ← municipios ya es dinámico
         muni = muni_info["municipio"]
         dept = muni_info["departamento"]
 
@@ -735,10 +763,10 @@ if __name__ == "__main__":
     if args.test:
         municipios = [
             {"departamento": "Antioquia",       "municipio": "Medellín"},
-            {"departamento": "Cundinamarca",     "municipio": "Bogotá"},
-            {"departamento": "Valle del Cauca",  "municipio": "Cali"},
-            {"departamento": "Atlántico",        "municipio": "Barranquilla"},
-            {"departamento": "Santander",        "municipio": "Bucaramanga"},
+        #   {"departamento": "Cundinamarca",     "municipio": "Bogotá"},
+        #    {"departamento": "Valle del Cauca",  "municipio": "Cali"},
+        #    {"departamento": "Atlántico",        "municipio": "Barranquilla"},
+        #    {"departamento": "Santander",        "municipio": "Bucaramanga"},
         ]
     elif args.dept:
         municipios = [m for m in municipios if m["departamento"].lower() == args.dept.lower()]

@@ -22,6 +22,16 @@ import httpx
 from dotenv import load_dotenv
 load_dotenv()
 
+from pydantic import BaseModel
+from typing import List
+
+class UbicacionModel(BaseModel):
+    municipio: str
+    departamento: str
+
+class ScrapPaginasAmarillasRequest(BaseModel):
+    selected_locations: List[UbicacionModel]  # ✅ REQUERIDO
+
 app = FastAPI(title="Argos Scraper — Páginas Amarillas")
 
 # URL fija del webhook de n8n.
@@ -37,6 +47,7 @@ estado = {
     "ultimo_status": "sin_correr",
     "ultimo_error": None,
     "metricas": None,
+    "ciudades_actual": None,  # ← AGREGAR ESTO
 }
 
 
@@ -76,13 +87,13 @@ async def notificar_fin_run(payload: dict, headers: dict | None = None):
         print(f"[CALLBACK] Falló envío a n8n: {e}")
 
 
-async def ejecutar_scraper_background(run_id: str):
+async def ejecutar_scraper_background(run_id: str, ciudades: List[dict]):
     global estado
     try:
         from main import main as do_scrape
 
-        # Si do_scrape retorna métricas, se guardan
-        metricas = await do_scrape()
+        # ✅ PASAR CIUDADES A do_scrape
+        metricas = await do_scrape(ciudades=ciudades)
 
         fin = datetime.now().isoformat()
         duracion = None
@@ -111,9 +122,8 @@ async def ejecutar_scraper_background(run_id: str):
             "inicio": estado["inicio"],
             "fin": estado["fin"],
             "duracion": estado["duracion"],
+            "ciudades": estado["ciudades_actual"],  # ← AGREGAR
             "metricas": estado["metricas"],
-            "origen": "api_runner",
-            "tipo_ejecucion": "produccion"
         })
 
     except Exception as e:
@@ -138,9 +148,8 @@ async def ejecutar_scraper_background(run_id: str):
             "inicio": estado["inicio"],
             "fin": estado["fin"],
             "duracion": estado["duracion"],
+            "ciudades": estado["ciudades_actual"],  # ← AGREGAR
             "error": str(e),
-            "origen": "api_runner",
-            "tipo_ejecucion": "produccion"
         })
 
 
@@ -160,12 +169,13 @@ def status():
         "fin": estado["fin"],
         "duracion": estado["duracion"],
         "error": estado["ultimo_error"],
+        "ciudades_actual": estado["ciudades_actual"],  # ← AGREGAR
         "metricas": estado["metricas"],
     }
 
 
 @app.post("/scrape/paginas-amarillas")
-async def run_scraper():
+async def run_scraper(request: ScrapPaginasAmarillasRequest):
     global estado
 
     if estado["scraping_en_curso"]:
@@ -179,6 +189,25 @@ async def run_scraper():
             }
         )
 
+    # ✅ Validar que haya al menos una ciudad
+    if not request.selected_locations or len(request.selected_locations) == 0:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "detail": "selected_locations es obligatorio y debe tener al menos una ciudad"
+            }
+        )
+
+    # ✅ Convertir a list[dict]
+    ciudades = [
+        {
+            "municipio": loc.municipio.lower(),
+            "departamento": loc.departamento
+        }
+        for loc in request.selected_locations
+    ]
+
     run_id = str(uuid.uuid4())
     inicio = datetime.now().isoformat()
 
@@ -191,15 +220,19 @@ async def run_scraper():
         "ultimo_status": "corriendo",
         "ultimo_error": None,
         "metricas": None,
+        "ciudades_actual": ciudades,  # ← AGREGAR
     })
 
-    asyncio.create_task(ejecutar_scraper_background(run_id))
+    # ✅ PASAR CIUDADES A BACKGROUND
+    asyncio.create_task(ejecutar_scraper_background(run_id, ciudades))
 
     return {
         "status": "iniciado",
-        "mensaje": "Scraper disparado. Consulta /status para ver el progreso.",
+        "mensaje": "Scraper disparado con ciudades dinámicas.",
         "run_id": run_id,
         "inicio": inicio,
+        "ciudades": ciudades,  # ← AGREGAR
+        "cantidad_ciudades": len(ciudades),  # ← AGREGAR
         "webhook_n8n": N8N_WEBHOOK_URL,
     }
 
@@ -214,6 +247,7 @@ def resultado():
         "duracion": estado["duracion"],
         "error": estado["ultimo_error"],
         "en_curso": estado["scraping_en_curso"],
+        "ciudades": estado["ciudades_actual"],  # ← AGREGAR
         "metricas": estado["metricas"],
     }
 

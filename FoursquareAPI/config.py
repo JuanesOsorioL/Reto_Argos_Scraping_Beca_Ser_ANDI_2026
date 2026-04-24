@@ -41,6 +41,7 @@ FSQ_FIELDS = ",".join([
 # KEYWORDS Y CIUDADES
 # ──────────────────────────────────────────────────────────────────────────────
 
+"""
 KEYWORDS_BUSQUEDA = [
     "ferretería", "materiales de construcción", "cemento",
     "depósito de materiales", "ferreteria deposito",
@@ -48,46 +49,14 @@ KEYWORDS_BUSQUEDA = [
     "ladrillera", "distribuidora cemento",
 ]
 
-CIUDADES = [
-    # Capitales principales
-    {"nombre": "Bogotá", "near": "Bogotá, Colombia"},
-    {"nombre": "Medellín", "near": "Medellín, Colombia"},
-    {"nombre": "Cali", "near": "Cali, Colombia"},
-    {"nombre": "Barranquilla", "near": "Barranquilla, Colombia"},
-    {"nombre": "Cartagena", "near": "Cartagena, Colombia"},
-    {"nombre": "Bucaramanga", "near": "Bucaramanga, Colombia"},
-    {"nombre": "Cúcuta", "near": "Cúcuta, Colombia"},
-    {"nombre": "Pereira", "near": "Pereira, Colombia"},
-    {"nombre": "Santa Marta", "near": "Santa Marta, Colombia"},
-    {"nombre": "Ibagué", "near": "Ibagué, Colombia"},
-    {"nombre": "Pasto", "near": "Pasto, Colombia"},
-    {"nombre": "Manizales", "near": "Manizales, Colombia"},
-    {"nombre": "Neiva", "near": "Neiva, Colombia"},
-    {"nombre": "Villavicencio", "near": "Villavicencio, Colombia"},
-    {"nombre": "Armenia", "near": "Armenia, Colombia"},
-    {"nombre": "Valledupar", "near": "Valledupar, Colombia"},
-    {"nombre": "Montería", "near": "Montería, Colombia"},
-    {"nombre": "Sincelejo", "near": "Sincelejo, Colombia"},
-    {"nombre": "Popayán", "near": "Popayán, Colombia"},
-    {"nombre": "Tunja", "near": "Tunja, Colombia"},
-    # Municipios importantes
-    {"nombre": "Bello", "near": "Bello, Antioquia, Colombia"},
-    {"nombre": "Itagüí", "near": "Itagüí, Antioquia, Colombia"},
-    {"nombre": "Envigado", "near": "Envigado, Antioquia, Colombia"},
-    {"nombre": "Rionegro", "near": "Rionegro, Antioquia, Colombia"},
-    {"nombre": "Apartadó", "near": "Apartadó, Antioquia, Colombia"},
-    {"nombre": "Soacha", "near": "Soacha, Cundinamarca, Colombia"},
-    {"nombre": "Palmira", "near": "Palmira, Valle del Cauca, Colombia"},
-    {"nombre": "Buenaventura", "near": "Buenaventura, Colombia"},
-    {"nombre": "Barrancabermeja", "near": "Barrancabermeja, Colombia"},
-    {"nombre": "Duitama", "near": "Duitama, Boyacá, Colombia"},
-    {"nombre": "Sogamoso", "near": "Sogamoso, Boyacá, Colombia"},
-    {"nombre": "Dosquebradas", "near": "Dosquebradas, Risaralda, Colombia"},
-    {"nombre": "Floridablanca", "near": "Floridablanca, Santander, Colombia"},
-    {"nombre": "Girón", "near": "Girón, Santander, Colombia"},
-    {"nombre": "Pitalito", "near": "Pitalito, Huila, Colombia"},
-    {"nombre": "Ipiales", "near": "Ipiales, Nariño, Colombia"},
+"""
+
+
+KEYWORDS_BUSQUEDA = [
+    "ferretería"
 ]
+
+
 
 CIUDAD_DEPARTAMENTO = {
     "Bogotá": "Cundinamarca", "Medellín": "Antioquia", "Cali": "Valle del Cauca",
@@ -104,7 +73,6 @@ CIUDAD_DEPARTAMENTO = {
     "Floridablanca": "Santander", "Girón": "Santander",
     "Pitalito": "Huila", "Ipiales": "Nariño",
 }
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # REQUEST CONFIGURATION

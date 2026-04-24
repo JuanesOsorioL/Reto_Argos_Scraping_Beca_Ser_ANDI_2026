@@ -56,6 +56,18 @@ foursquareAPI/output
 
 
 
+
+
+ValidarCiudadesAPI/__pycache__/
+ValidarCiudadesAPI/.venv/
+ValidarCiudadesAPI/logs
+ValidarCiudadesAPI/.env
+ValidarCiudadesAPI/*.jsonl
+ValidarCiudadesAPI/output
+
+
+
+
 # archivos puntuales
 RUES/Antes_api_runner.js
 RUES/Docker_pasos.md

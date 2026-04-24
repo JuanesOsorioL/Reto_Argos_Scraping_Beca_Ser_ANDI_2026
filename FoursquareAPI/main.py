@@ -18,7 +18,7 @@ import requests
 from datetime import datetime, timezone
 
 from config import (
-    KEYWORDS_BUSQUEDA, CIUDADES,
+    KEYWORDS_BUSQUEDA,
     OUTPUT_DIR, OUTPUT_FILE, JSON_RAW_FILE, JSON_FLAT_FILE, PROGRESS_FILE,
     SAVE_JSON_BACKUP, SAVE_PROGRESS_FILE,
     AUTO_PAUSE_ON_RATE_LIMIT, RATE_LIMIT_SLEEP_SECONDS,
@@ -103,17 +103,33 @@ def enviar_webhook(webhook_url: str, datos: dict):
         print(f"  [HOOK] ❌ Error enviando webhook: {e}")
 
 
-async def do_scrape():
+async def do_scrape(ciudades: list,run_idfinal: str):
     """
     Función principal compatible con api_runner.py.
     
+    Args:
+        ciudades: list[dict] — REQUERIDO
+        Ej: [{"municipio": "bogota", "departamento": "Cundinamarca"}, ...]
+    
     Ejecuta:
       1. Inicializa BD
-      2. Loop sobre keywords × ciudades
+      2. Loop sobre keywords × ciudades dinámicas
       3. Detecta 403 → pausa automática → reanudación
       4. Guarda datos en PostgreSQL + JSONs
       5. Envía webhooks a n8n
     """
+    
+    # ✅ VALIDACIÓN OBLIGATORIA
+    if not ciudades:
+        raise ValueError("❌ CIUDADES REQUERIDAS EN PARÁMETRO. "
+                        "api_runner.py debe enviar lista de ciudades")
+    
+    if not isinstance(ciudades, list):
+        raise TypeError(f"ciudades debe ser list, recibió {type(ciudades)}")
+    
+    for i, ciudad_obj in enumerate(ciudades):
+        if not isinstance(ciudad_obj, dict) or "municipio" not in ciudad_obj:
+            raise ValueError(f"Ciudad #{i} debe tener 'municipio': {ciudad_obj}")
     
     ensure_output_dir()
     init_db()
@@ -121,12 +137,13 @@ async def do_scrape():
     # ──────────────────────────────────────────────────────────────────────
     # INICIALIZACIÓN DE LA CORRIDA
     # ──────────────────────────────────────────────────────────────────────
-    
-    run_id = str(uuid.uuid4())
+
+    run_id=run_idfinal
+    #run_id = str(uuid.uuid4())
     fecha_extraccion = datetime.now(timezone.utc)
     procesados = cargar_fsq_ids_procesados()
     
-    total_combinaciones = len(KEYWORDS_BUSQUEDA) * len(CIUDADES)
+    total_combinaciones = len(KEYWORDS_BUSQUEDA) * len(ciudades)
     
     print(f"\n{'='*70}")
     print(f"[FOURSQUARE SCRAPER] run_id: {run_id}")
@@ -155,9 +172,10 @@ async def do_scrape():
     # LOOP PRINCIPAL: Keywords × Ciudades
     # ──────────────────────────────────────────────────────────────────────
     
-    for ciudad_info in CIUDADES:
-        ciudad_nombre = ciudad_info["nombre"]
-        near = ciudad_info["near"]
+    for ciudad_obj in ciudades:  # ✅ Dinámico
+        ciudad_nombre = ciudad_obj["municipio"]
+        departamento = ciudad_obj["departamento"]
+        near = f"{ciudad_nombre}, {departamento}, Colombia"  # Construir "near"
         
         for keyword in KEYWORDS_BUSQUEDA:
             combo_num += 1
@@ -379,21 +397,72 @@ async def do_scrape():
         save_json(JSON_RAW_FILE, raw_responses)
         save_json(JSON_FLAT_FILE, flat_results)
     
-    # Guardar estado final
-    estado_final = {
+     # ─── CALCULAR DURACIÓN Y PREPARAR MÉTRICAS ─────────────────────────────
+    fecha_fin = datetime.now(timezone.utc)
+    duracion_seconds = (fecha_fin - fecha_extraccion).total_seconds()
+    duracion_minutos = int(duracion_seconds // 60)
+    duracion_segundos = int(duracion_seconds % 60)
+    duracion_str = f"{duracion_minutos}m {duracion_segundos}s"
+    
+    # ─── ESTRUCTURA FINAL DE NOTIFICACIÓN (formato n8n estándar) ───────────
+    payload_webhook = {
+        "evento": "foursquare.finalizado",        # ← Tipo de evento
+        "status": "ok",                            # ← Estado de ejecución
+        "run_id": run_id,                          # ← UUID de la corrida
+        "inicio": fecha_extraccion.isoformat(),    # ← Timestamp inicio
+        "fin": fecha_fin.isoformat(),              # ← Timestamp fin
+        "duracion": duracion_str,                  # ← Duración formateada
+        
+        # ─── MÉTRICAS DETALLADAS ───────────────────────────────────────────
+        "metricas": {
+            "run_id": run_id,
+            "inicio": fecha_extraccion.isoformat(),
+            "fin": fecha_fin.isoformat(),
+            "duracion": duracion_str,
+            
+            # Combinaciones procesadas
+            "combinaciones_total": total_combinaciones,
+            "combinaciones_procesadas": combo_num,
+            "ciudades": len(ciudades),
+            "keywords": len(KEYWORDS_BUSQUEDA),
+            
+            # Datos guardados
+            "registros_nuevos": total_ins,
+            "duplicados": total_dup,
+            "aprobados_argos": total_apr,
+            
+            # Control de rate limit
+            "rate_limit_pausas": rate_limit_count,
+            
+            # Configuración
+            "json_backup_habilitado": SAVE_JSON_BACKUP,
+            "raw_json_file": JSON_RAW_FILE if SAVE_JSON_BACKUP else None,
+            "flat_json_file": JSON_FLAT_FILE if SAVE_JSON_BACKUP else None,
+            "progress_file": PROGRESS_FILE if SAVE_PROGRESS_FILE else None,
+        },
+        
+        "origen": "api_runner",                    # ← Quién envía
+        "tipo_ejecucion": "produccion"             # ← Contexto de ejecución
+    }
+    
+    # ─── GUARDAR ESTADO FINAL EN BD Y JSON ──────────────────────────────────
+    # Guardar en BD (para auditoría)
+    estado_final_bd = {
         "estado": "completado",
+        "run_id": run_id,
         "total_procesadas": combo_num,
         "total_insertadas": total_ins,
         "total_duplicadas": total_dup,
         "total_aprobadas": total_apr,
         "rate_limit_count": rate_limit_count,
+        "duracion": duracion_str,
     }
-    guardar_progreso(run_id, estado_final)
-    guardar_progreso_json(run_id, estado_final)
+    guardar_progreso(run_id, estado_final_bd)
+    guardar_progreso_json(run_id, payload_webhook)  # ← Guardar payload completo
     
-    # Enviar webhook de completado
+    # ─── ENVIAR WEBHOOK A N8N CON FORMATO ESTÁNDAR ─────────────────────────
     if WEBHOOK_ON_COMPLETE:
-        enviar_webhook(WEBHOOK_ON_COMPLETE, estado_final)
+        enviar_webhook(WEBHOOK_ON_COMPLETE, payload_webhook)
     
     # ──────────────────────────────────────────────────────────────────────
     # RESUMEN FINAL
