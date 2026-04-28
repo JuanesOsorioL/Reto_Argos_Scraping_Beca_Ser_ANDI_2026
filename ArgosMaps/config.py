@@ -47,6 +47,7 @@ CIUDAD_DEPARTAMENTO = {
     "espinal": "Tolima", "ipiales": "Nariño",
 }
 
+
 """
 KEYWORDS_BUSQUEDA = [
     "ferreterias", "depositos de materiales", "depositos y ferreteria", 
@@ -58,8 +59,36 @@ KEYWORDS_BUSQUEDA = [
 ]
 """
 KEYWORDS_BUSQUEDA = [
-    "ferreterias"
+   "ferreterias",
+    "depositos de materiales",
+    "depositos y ferreteria",
+    "bodegas de construccion",
+    "centro ferretero",
+    "materiales de construccion",
+    "materiales para construccion",
+
+    "cemento",
+    "distribuidoras de cemento",
+    "venta de cemento",
+    "hierro y cemento",
+
+    "concreto",
+    "concreto premezclado",
+    "prefabricados de concreto",
+
+    "morteros",
+    "mortero seco",
+
+    "agregados para construccion",
+    "arena y balasto",
+    "arena grava y triturado",
+
+    "obra gris",
+
+    "bloqueras",
+    "ladrilleras"
 ]
+
 
 
 
@@ -84,10 +113,12 @@ DB_CONFIG = {
 
 
 # ─── Configuración del Scraping ───────────────────────────────────────────────
-MAX_CONCURRENT_TABS = 3 #2
-MIN_DELAY_SECONDS   = 1.5 #2.0
-MAX_DELAY_SECONDS   = 3.0 #5.0
-HEADLESS = os.getenv("HEADLESS", "true").strip().lower() == "true"
+MAX_CONCURRENT_TABS   = 3 #2
+MIN_DELAY_SECONDS     = 1.5 #2.0
+MAX_DELAY_SECONDS     = 3.0 #5.0
+HEADLESS              = os.getenv("HEADLESS", "true").strip().lower() == "true"
+# Reinicia el browser cada N combinaciones keyword+ciudad para liberar memoria V8
+BROWSER_RESTART_EVERY = int(os.getenv("BROWSER_RESTART_EVERY", "10"))
 
 
 # ─── Rutas de Salida (respaldo local) ────────────────────────────────────────

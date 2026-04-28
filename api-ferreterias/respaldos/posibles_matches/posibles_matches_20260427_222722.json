@@ -1,0 +1,1291 @@
+{
+  "timestamp": "2026-04-28T03:27:22.171175+00:00",
+  "total_matches": 61,
+  "distribucion_decisiones": {
+    "auto_match": 4,
+    "pendiente_revision": 57
+  },
+  "matches": [
+    {
+      "match_id": 62,
+      "staging_id_a": 162,
+      "staging_id_b": 206,
+      "regla_match": "MISMO_TELEFONO_MUNICIPIO",
+      "score_match": 85,
+      "decision": "auto_match",
+      "razon_decision": "Teléfono idéntico en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria ecoferro 4.0 - sede castilla",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria ecoferro 4.0",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 63,
+      "staging_id_a": 214,
+      "staging_id_b": 250,
+      "regla_match": "MISMO_TELEFONO_MUNICIPIO",
+      "score_match": 85,
+      "decision": "auto_match",
+      "razon_decision": "Teléfono idéntico en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "casa ferretera s.a.",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "casa ferretera amador",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 64,
+      "staging_id_a": 239,
+      "staging_id_b": 265,
+      "regla_match": "MISMO_TELEFONO_MUNICIPIO",
+      "score_match": 85,
+      "decision": "auto_match",
+      "razon_decision": "Teléfono idéntico en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferropartes palace",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "comercializadora ferropartes principal",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 65,
+      "staging_id_a": 276,
+      "staging_id_b": 281,
+      "regla_match": "MISMO_TELEFONO_MUNICIPIO",
+      "score_match": 85,
+      "decision": "auto_match",
+      "razon_decision": "Teléfono idéntico en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "maxifer - mangueras y equipos - sede 1",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "maxifer - mangueras y equipos - sede 2",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 66,
+      "staging_id_a": 157,
+      "staging_id_b": 268,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 85,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria el desvare",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria el desvare",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 70,
+      "staging_id_a": 178,
+      "staging_id_b": 256,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 85,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria y deposito la 79",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "deposito y ferreteria la 70",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 73,
+      "staging_id_a": 215,
+      "staging_id_b": 275,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 85,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 67,
+      "staging_id_a": 207,
+      "staging_id_b": 256,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 80,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria y deposito la 28",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "deposito y ferreteria la 70",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 78,
+      "staging_id_a": 178,
+      "staging_id_b": 207,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 80,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria y deposito la 79",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria y deposito la 28",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 68,
+      "staging_id_a": 163,
+      "staging_id_b": 215,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria jr",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 75,
+      "staging_id_a": 166,
+      "staging_id_b": 256,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria la 107",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "deposito y ferreteria la 70",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 76,
+      "staging_id_a": 166,
+      "staging_id_b": 178,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria la 107",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria y deposito la 79",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 77,
+      "staging_id_a": 147,
+      "staging_id_b": 178,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria lapiz",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria y deposito la 79",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 69,
+      "staging_id_a": 163,
+      "staging_id_b": 275,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria jr",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 71,
+      "staging_id_a": 147,
+      "staging_id_b": 207,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria lapiz",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria y deposito la 28",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 74,
+      "staging_id_a": 147,
+      "staging_id_b": 256,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria lapiz",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "deposito y ferreteria la 70",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 72,
+      "staging_id_a": 166,
+      "staging_id_b": 207,
+      "regla_match": "NOMBRE_SIMILAR_MUNICIPIO",
+      "score_match": 75,
+      "decision": "pendiente_revision",
+      "razon_decision": "Nombres similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria la 107",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria y deposito la 28",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 95,
+      "staging_id_a": 145,
+      "staging_id_b": 277,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria metropon",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferroelectro deposito y ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 96,
+      "staging_id_a": 167,
+      "staging_id_b": 255,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "electro cromos",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferro fuerza",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 97,
+      "staging_id_a": 177,
+      "staging_id_b": 267,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria y deposito alvarez",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria punto clave y aliado droop coordinadora",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 98,
+      "staging_id_a": 150,
+      "staging_id_b": 217,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "distribuciones ferreteras f101",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferrator s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 99,
+      "staging_id_a": 165,
+      "staging_id_b": 212,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria amador",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "centro herramientas medellin",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 100,
+      "staging_id_a": 148,
+      "staging_id_b": 268,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria ferrevelez s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria el desvare",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 101,
+      "staging_id_a": 156,
+      "staging_id_b": 181,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "el sotano",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "autollaves y ferreteria s.a.s.",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 102,
+      "staging_id_a": 165,
+      "staging_id_b": 204,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria amador",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria la luneta sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 103,
+      "staging_id_a": 165,
+      "staging_id_b": 200,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria amador",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "corazon ferretero",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 104,
+      "staging_id_a": 208,
+      "staging_id_b": 276,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria el pedalista sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "maxifer - mangueras y equipos - sede 1",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 105,
+      "staging_id_a": 230,
+      "staging_id_b": 269,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria j y m",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria ferrecenter jc",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 106,
+      "staging_id_a": 212,
+      "staging_id_b": 281,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "centro herramientas medellin",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "maxifer - mangueras y equipos - sede 2",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 107,
+      "staging_id_a": 208,
+      "staging_id_b": 281,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria el pedalista sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "maxifer - mangueras y equipos - sede 2",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 108,
+      "staging_id_a": 258,
+      "staging_id_b": 268,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria don fulano",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria el desvare",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 109,
+      "staging_id_a": 239,
+      "staging_id_b": 281,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferropartes palace",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "maxifer - mangueras y equipos - sede 2",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 110,
+      "staging_id_a": 200,
+      "staging_id_b": 204,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "corazon ferretero",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria la luneta sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 111,
+      "staging_id_a": 217,
+      "staging_id_b": 275,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferrator s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 112,
+      "staging_id_a": 154,
+      "staging_id_b": 233,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "todo en ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria ferveco",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 113,
+      "staging_id_a": 208,
+      "staging_id_b": 228,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria el pedalista sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "almacenes hj",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 114,
+      "staging_id_a": 148,
+      "staging_id_b": 177,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria ferrevelez s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria y deposito alvarez",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 115,
+      "staging_id_a": 171,
+      "staging_id_b": 233,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "zona libre ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria ferveco",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 116,
+      "staging_id_a": 209,
+      "staging_id_b": 265,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "th.s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "comercializadora ferropartes principal",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 117,
+      "staging_id_a": 154,
+      "staging_id_b": 171,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "todo en ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "zona libre ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 118,
+      "staging_id_a": 200,
+      "staging_id_b": 212,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "corazon ferretero",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "centro herramientas medellin",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 119,
+      "staging_id_a": 195,
+      "staging_id_b": 247,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria el construtodo",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria 3d campo valdes",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 120,
+      "staging_id_a": 193,
+      "staging_id_b": 248,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria y deposito prado centro",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria y deposito moore",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 121,
+      "staging_id_a": 204,
+      "staging_id_b": 212,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria la luneta sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "centro herramientas medellin",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 122,
+      "staging_id_a": 200,
+      "staging_id_b": 221,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "corazon ferretero",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria el punto",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 79,
+      "staging_id_a": 163,
+      "staging_id_b": 189,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria jr",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "la ferreteria j&c",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 80,
+      "staging_id_a": 167,
+      "staging_id_b": 251,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "electro cromos",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "variedades los primos #3",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 81,
+      "staging_id_a": 184,
+      "staging_id_b": 187,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria dynamica carpintero medellin",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria lider - grupo roldan",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 82,
+      "staging_id_a": 267,
+      "staging_id_b": 268,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria punto clave y aliado droop coordinadora",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria el desvare",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 83,
+      "staging_id_a": 212,
+      "staging_id_b": 279,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "centro herramientas medellin",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria nacional s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 84,
+      "staging_id_a": 208,
+      "staging_id_b": 239,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria el pedalista sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferropartes palace",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 85,
+      "staging_id_a": 153,
+      "staging_id_b": 280,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria ferrovalvulas s.a.s.",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria tornidin",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 86,
+      "staging_id_a": 177,
+      "staging_id_b": 258,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria y deposito alvarez",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria don fulano",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 87,
+      "staging_id_a": 177,
+      "staging_id_b": 268,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria y deposito alvarez",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria el desvare",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 88,
+      "staging_id_a": 165,
+      "staging_id_b": 279,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "deposito y ferreteria amador",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria nacional s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 89,
+      "staging_id_a": 228,
+      "staging_id_b": 276,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "almacenes hj",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "maxifer - mangueras y equipos - sede 1",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 90,
+      "staging_id_a": 204,
+      "staging_id_b": 279,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria la luneta sas",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria nacional s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 91,
+      "staging_id_a": 154,
+      "staging_id_b": 182,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "todo en ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "jm. los angeles - deposito y ferreteria",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 92,
+      "staging_id_a": 143,
+      "staging_id_b": 175,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "ferreteria cuatro vientos",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria ferrearte",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 93,
+      "staging_id_a": 200,
+      "staging_id_b": 279,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "corazon ferretero",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferreteria nacional s.a.s",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    },
+    {
+      "match_id": 94,
+      "staging_id_a": 251,
+      "staging_id_b": 255,
+      "regla_match": "DIRECCION_SIMILAR_MUNICIPIO",
+      "score_match": 70,
+      "decision": "pendiente_revision",
+      "razon_decision": "Direcciones similares en mismo municipio",
+      "creado_por_ia": false,
+      "confianza_ia": null,
+      "empresa_a": {
+        "nombre": "variedades los primos #3",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      },
+      "empresa_b": {
+        "nombre": "ferro fuerza",
+        "fuente": "google_maps",
+        "municipio": "medellin"
+      }
+    }
+  ]
+}

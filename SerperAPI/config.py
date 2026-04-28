@@ -124,7 +124,6 @@ if not DB_CONFIG["host"] or not DB_CONFIG["user"]:
 # BÚSQUEDA: KEYWORDS Y CIUDADES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-
 """
 KEYWORDS_BUSQUEDA = [
     "ferreterias", "depositos de materiales", "depositos y ferreteria",
@@ -136,9 +135,36 @@ KEYWORDS_BUSQUEDA = [
 ]
 
 """
-# Lista de keywords a buscar (ferreterías, construcción, materiales)
+
 KEYWORDS_BUSQUEDA = [
-    "ferreterias"
+"ferreterias",
+    "depositos de materiales",
+    "depositos y ferreteria",
+    "bodegas de construccion",
+    "centro ferretero",
+    "materiales de construccion",
+    "materiales para construccion",
+
+    "cemento",
+    "distribuidoras de cemento",
+    "venta de cemento",
+    "hierro y cemento",
+
+    "concreto",
+    "concreto premezclado",
+    "prefabricados de concreto",
+
+    "morteros",
+    "mortero seco",
+
+    "agregados para construccion",
+    "arena y balasto",
+    "arena grava y triturado",
+
+    "obra gris",
+
+    "bloqueras",
+    "ladrilleras"
 ]
 
 

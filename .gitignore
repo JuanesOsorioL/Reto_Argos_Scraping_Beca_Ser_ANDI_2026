@@ -86,3 +86,18 @@ ngrok/generated/n8n-ngrok.env
 #archivos anteriores que quiero dejar para analizar
 ngrok/sync-ngrok-url.sh
 ngrok/start-ngrok-and-refresh-n8n.ps1
+
+openrouter-api
+No tener en cuenta otras versiones de api-ferreterias
+
+
+
+api-ferreterias/__pycache__/
+api-ferreterias/venv/
+api-ferreterias/logs
+api-ferreterias/.env
+api-ferreterias/*.jsonl
+api-ferreterias/output
+api-ferreterias/docker-compose.yml
+api-ferreterias/docker-compose-service.yml
+api-ferreterias/requirements_api_runner.txt

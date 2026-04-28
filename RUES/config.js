@@ -54,13 +54,41 @@ const CONFIG = {
   },
 
 
+ KEYWORDS_BUSQUEDA: [
+"ferreterias",
+    "depositos de materiales",
+    "depositos y ferreteria",
+    "bodegas de construccion",
+    "centro ferretero",
+    "materiales de construccion",
+    "materiales para construccion",
+
+    "cemento",
+    "distribuidoras de cemento",
+    "venta de cemento",
+    "hierro y cemento",
+
+    "concreto",
+    "concreto premezclado",
+    "prefabricados de concreto",
+
+    "morteros",
+    "mortero seco",
+
+    "agregados para construccion",
+    "arena y balasto",
+    "arena grava y triturado",
+
+    "obra gris",
+
+    "bloqueras",
+    "ladrilleras"
+  ],
 
 
 
 
 /*
-
-
  KEYWORDS_BUSQUEDA: [
     // Keyword genérica del rubro ferretero.
     'ferreterias',
@@ -101,14 +129,8 @@ const CONFIG = {
     // Keyword sobre distribuidoras de cemento.
     'distribuidoras de cemento'
   ],
+
 */
-
- KEYWORDS_BUSQUEDA: [
-    // Keyword genérica del rubro ferretero.
-    'bodegas de construccion',
-
-  ],
-
 
 
 

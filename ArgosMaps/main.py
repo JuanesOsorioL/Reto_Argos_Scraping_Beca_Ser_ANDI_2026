@@ -20,7 +20,7 @@ from playwright.async_api import async_playwright, Page, BrowserContext, Respons
 from config import (
     CIUDAD_DEPARTAMENTO, KEYWORDS_BUSQUEDA,  # ✅ Sin CIUDADES
     MAX_CONCURRENT_TABS, MIN_DELAY_SECONDS, MAX_DELAY_SECONDS,
-    HEADLESS, OUTPUT_FILE, GUARDAR_JSONL_LOCAL
+    HEADLESS, OUTPUT_FILE, GUARDAR_JSONL_LOCAL, BROWSER_RESTART_EVERY
 )
 from filter_engine import calcular_score_argos
 from db import init_db, cargar_urls_procesadas, insertar_negocio
@@ -318,6 +318,30 @@ STEALTH_SCRIPT = """
 """
 
 
+async def crear_browser_context(p):
+    """Lanza un browser limpio y devuelve (browser, context). Llamar también para reiniciar."""
+    browser = await p.chromium.launch(
+        headless=HEADLESS,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-infobars",
+        ]
+    )
+    context = await browser.new_context(
+        locale="es-CO",
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        viewport={"width": 1280, "height": 900},
+    )
+    await context.add_init_script(STEALTH_SCRIPT)
+    return browser, context
+
+
 async def do_scrape(ciudades: list):
     """
     Scraper Google Maps con ciudades OBLIGATORIAS.
@@ -368,55 +392,50 @@ async def do_scrape(ciudades: list):
     print(f"[*] Inicio: {fecha_extraccion.isoformat()}\n")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=HEADLESS,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-infobars",
-            ]
-        )
+        browser, context = await crear_browser_context(p)
+        combo_count = 0
 
-        context = await browser.new_context(
-            locale="es-CO",
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            ),
-            viewport={"width": 1280, "height": 900},
-        )
-        await context.add_init_script(STEALTH_SCRIPT)
+        try:
+            for keyword in KEYWORDS_BUSQUEDA:
+                for ciudad_obj in ciudades:  # ✅ Ciudades vienen dinámicas
+                    ciudad = ciudad_obj["municipio"]
 
-        for keyword in KEYWORDS_BUSQUEDA:
-            for ciudad_obj in ciudades:  # ✅ Ciudades vienen dinámicas
-                ciudad = ciudad_obj["municipio"]
-                print(f"\n[*] Buscando: '{keyword}' en '{ciudad}'...")
-                page = await context.new_page()
-                try:
-                    urls_encontradas = await extraer_urls_busqueda(page, ciudad, keyword)
-                except Exception as e:
-                    print(f"    [-] Error en búsqueda: {e}")
-                    urls_encontradas = []
-                finally:
-                    await page.close()
+                    # Reinicio periódico para liberar heap V8 acumulado
+                    combo_count += 1
+                    if combo_count > 1 and combo_count % BROWSER_RESTART_EVERY == 0:
+                        print(f"\n[♻] Reiniciando browser (combo #{combo_count}) para liberar memoria...")
+                        await context.close()
+                        await browser.close()
+                        browser, context = await crear_browser_context(p)
+                        print("[♻] Browser reiniciado.\n")
 
-                urls_a_procesar = [u for u in urls_encontradas if u not in procesados]
-                print(f"    → {len(urls_encontradas)} totales | {len(urls_a_procesar)} nuevos.")
+                    print(f"\n[*] Buscando: '{keyword}' en '{ciudad}'...")
+                    page = await context.new_page()
+                    try:
+                        urls_encontradas = await extraer_urls_busqueda(page, ciudad, keyword)
+                    except Exception as e:
+                        print(f"    [-] Error en búsqueda: {e}")
+                        urls_encontradas = []
+                    finally:
+                        await page.close()
 
-                for i in range(0, len(urls_a_procesar), MAX_CONCURRENT_TABS):
-                    lote  = urls_a_procesar[i:i + MAX_CONCURRENT_TABS]
-                    tareas = [
-                        procesar_lugar(context, url, keyword, ciudad, run_id, fecha_extraccion)
-                        for url in lote
-                    ]
-                    await asyncio.gather(*tareas)
-                    for url in lote:
-                        procesados.add(url)
-                    await human_pause()
+                    urls_a_procesar = [u for u in urls_encontradas if u not in procesados]
+                    print(f"    → {len(urls_encontradas)} totales | {len(urls_a_procesar)} nuevos.")
 
-        await browser.close()
+                    for i in range(0, len(urls_a_procesar), MAX_CONCURRENT_TABS):
+                        lote  = urls_a_procesar[i:i + MAX_CONCURRENT_TABS]
+                        tareas = [
+                            procesar_lugar(context, url, keyword, ciudad, run_id, fecha_extraccion)
+                            for url in lote
+                        ]
+                        await asyncio.gather(*tareas)
+                        for url in lote:
+                            procesados.add(url)
+                        await human_pause()
+        finally:
+            await context.close()
+            await browser.close()
+
         print(f"\n[✓] Scraping completado. run_id: {run_id}")
         print(f"[✓] Datos guardados en PostgreSQL y en: {OUTPUT_FILE}")
 

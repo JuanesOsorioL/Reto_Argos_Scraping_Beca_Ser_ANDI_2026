@@ -52,7 +52,12 @@ ESPERA_SOBRECARGA   = 60    # si todos fallan, esperar 60s antes del último rei
 
 # Regex para text_search — más simple = más rápido en el servidor
 #TEXT_REGEX = r"(ferreter|cement|concret|morter|bloquera|ladriller|prefabric|deposito|material|distribuidor|bodegas|materiales)"
-TEXT_REGEX = r"(ferreter)"
+#TEXT_REGEX = r"(ferreter)"
+
+
+TEXT_REGEX = r"(ferreterias|depositos de materiales|depositos y ferreteria|bodegas de construccion|centro ferretero|materiales de construccion|materiales para construccion|cemento|distribuidoras de cemento|venta de cemento|hierro y cemento|concreto|concreto premezclado|prefabricados de concreto|morteros|mortero seco|agregados para construccion|arena y balasto|arena grava y triturado|obra gris|bloqueras|ladrilleras)"
+
+
 
 # 5 familias de tags OSM
 
