@@ -194,15 +194,29 @@ def normalizar_staging(db) -> dict:
     logger.info("🔄 Iniciando normalización de staging...")
     conteos = {}
 
-    # Normalizar nombres
+    # Normalizar nombres (quita tildes, siglas jurídicas, liquidación y puntuación)
     db.execute(text(r"""
         UPDATE staging.empresas_unificadas
-        SET nombre_normalizado = lower(
+        SET nombre_normalizado = trim(regexp_replace(
             regexp_replace(
-                unaccent(coalesce(nombre_original, razon_social_original, '')),
-                '\s+', ' ', 'g'
-            )
-        )
+                regexp_replace(
+                    regexp_replace(
+                        regexp_replace(
+                            lower(unaccent(coalesce(nombre_original, razon_social_original, ''))),
+                            -- 1. Quitar frases de liquidacion (unaccent ya convirtio la o acentuada)
+                            'en liquidacion(\s+judicial)?', '', 'g'
+                        ),
+                        -- 2. Formas con puntos Y/O espacios: s.a.s, s a s, s a.s., s.a, s a, e.u, e u
+                        '(^|[\s])s[\s.]*a[\s.]*s[\s.]*([\s]|$)|(^|[\s])s[\s.]*a[\s.]*([\s]|$)|(^|[\s])e[\s.]*u[\s.]*([\s]|$)', ' ', 'gi'
+                    ),
+                    -- 3. Siglas y palabras jurídicas completas
+                    '\m(sas|sa|ltda|limitada|cia|compania|spa|eirl|eu|empresa|asociacion)\M', ' ', 'gi'
+                ),
+                -- 4. Puntuación incluyendo & y comillas ASCII
+                '[.,;:\-*()/&"]+', ' ', 'g'
+            ),
+            '\s+', ' ', 'g'
+        ))
         WHERE nombre_original IS NOT NULL OR razon_social_original IS NOT NULL
     """))
     conteos['nombres'] = db.execute(

@@ -17,6 +17,7 @@ def ejecutar_pipeline_completo_v2(
     config,
     execution_id: str,
     municipios: list = None,
+    keywords_rues: list = None,
     limpiar_staging: bool = True,
     usar_ia: bool = None,
     preferir_openrouter: bool = True,
@@ -25,6 +26,7 @@ def ejecutar_pipeline_completo_v2(
     incluir_rues_inactivos: bool = True,
     crear_json_campos_dudosos: bool = None,
     crear_json_posibles_matches: bool = None,
+    merge_log_detalle: int = 10,
     webhook_url: str = None,
 ) -> dict:
     from workers.etl_loader import cargar_todo_a_staging
@@ -91,7 +93,7 @@ def ejecutar_pipeline_completo_v2(
     try:
         # FASE 1: Cargar
         set_fase("Cargando fuentes raw", 5)
-        conteos = cargar_todo_a_staging(db, limpiar_antes=limpiar_staging, municipios=municipios)
+        conteos = cargar_todo_a_staging(db, limpiar_antes=limpiar_staging, municipios=municipios, keywords_rues=keywords_rues)
         total = sum(conteos.values())
         reporte["fase_1_carga"] = {**conteos, "total_staging": total}
         try:
@@ -157,7 +159,7 @@ def ejecutar_pipeline_completo_v2(
 
         # FASE 7: Consolidacion
         set_fase("Consolidando en clean.empresas", 75)
-        stats_consolid = consolidar_empresas(db)
+        stats_consolid = consolidar_empresas(db, merge_log_detalle=merge_log_detalle)
         reporte["fase_7_consolidacion"] = stats_consolid
         try:
             db.execute(text("UPDATE staging.ejecuciones SET empresas_consolidadas=:n WHERE execution_id=:eid"),
@@ -258,6 +260,9 @@ def ejecutar_pipeline_completo_v2(
     return reporte
 
 
+BATCH_SIZE_IA = 5  # pares por llamada al usar OpenRouter batch
+
+
 def _procesar_matches_con_ia(db, config, resolver_fn, preferir_openrouter) -> dict:
     from services.ia_service import _obtener_registro
 
@@ -280,54 +285,130 @@ def _procesar_matches_con_ia(db, config, resolver_fn, preferir_openrouter) -> di
     procesados = 0
     errores = 0
 
-    for match_id, sid_a, sid_b, score in matches:
-        reg_a = _obtener_registro(db, sid_a)
-        reg_b = _obtener_registro(db, sid_b)
-        if not reg_a or not reg_b:
-            continue
+    if preferir_openrouter:
+        # ── Modo batch: N pares por llamada ─────────────────────────────────
+        from services.openrouter_service import get_openrouter_service
+        svc = get_openrouter_service()
 
-        resultado = resolver_fn(reg_a, reg_b, score)
-        if resultado.get("decision") == "error":
-            errores += 1
-            continue
+        for i in range(0, len(matches), BATCH_SIZE_IA):
+            lote = matches[i:i + BATCH_SIZE_IA]
+            pares = []
+            meta = {}  # match_id → (sid_a, sid_b, reg_a, reg_b)
 
-        try:
-            db.execute(text("""
-                INSERT INTO staging.ia_validaciones
-                    (tipo_validacion, staging_id_a, staging_id_b,
-                     input_json, output_json, decision, confianza, modelo, tokens_usados)
-                VALUES ('deduplicacion_dudosa', :a, :b, :inp, :out, :dec, :conf, :mod, 0)
-            """), {
-                "a": sid_a, "b": sid_b,
-                "inp": json.dumps({"a": reg_a, "b": reg_b}),
-                "out": json.dumps(resultado),
-                "dec": resultado["decision"],
-                "conf": resultado.get("confianza", 0),
-                "mod": resultado.get("modelo", "openrouter"),
-            })
+            for match_id, sid_a, sid_b, score in lote:
+                reg_a = _obtener_registro(db, sid_a)
+                reg_b = _obtener_registro(db, sid_b)
+                if not reg_a or not reg_b:
+                    continue
+                pares.append({
+                    "match_id": match_id,
+                    "nombre_a": reg_a.get("nombre_normalizado", ""),
+                    "municipio_a": reg_a.get("municipio_norm", ""),
+                    "fuente_a": reg_a.get("fuente", ""),
+                    "telefono_a": reg_a.get("telefono_normalizado", ""),
+                    "nombre_b": reg_b.get("nombre_normalizado", ""),
+                    "municipio_b": reg_b.get("municipio_norm", ""),
+                    "fuente_b": reg_b.get("fuente", ""),
+                    "telefono_b": reg_b.get("telefono_normalizado", ""),
+                    "score": score,
+                })
+                meta[match_id] = (sid_a, sid_b, reg_a, reg_b)
 
-            nueva = "ia_match" if resultado["decision"] == "same_business" else "no_match"
-            db.execute(text("""
-                UPDATE staging.posibles_matches
-                SET decision=:dec, creado_por_ia=true,
-                    confianza_ia=:conf, razon_decision=:razon, updated_at=NOW()
-                WHERE match_id=:mid
-            """), {
-                "dec": nueva, "conf": resultado.get("confianza", 0),
-                "razon": resultado.get("razon", ""), "mid": match_id,
-            })
-            procesados += 1
+            if not pares:
+                continue
 
-            if procesados % 10 == 0:
-                db.commit()
-        except Exception:
-            errores += 1
+            resultados = svc.resolver_duplicados_batch(pares)
 
-    db.commit()
+            for res in resultados:
+                mid = res["match_id"]
+                if mid not in meta:
+                    continue
+                sid_a, sid_b, reg_a, reg_b = meta[mid]
+
+                if res["decision"] == "error":
+                    errores += 1
+                    continue
+
+                try:
+                    db.execute(text("""
+                        INSERT INTO staging.ia_validaciones
+                            (tipo_validacion, staging_id_a, staging_id_b,
+                             input_json, output_json, decision, confianza, modelo, tokens_usados)
+                        VALUES ('deduplicacion_dudosa', :a, :b, :inp, :out, :dec, :conf, :mod, 0)
+                    """), {
+                        "a": sid_a, "b": sid_b,
+                        "inp": json.dumps({"a": reg_a, "b": reg_b}),
+                        "out": json.dumps(res),
+                        "dec": res["decision"],
+                        "conf": res.get("confianza", 0),
+                        "mod": res.get("modelo", "openrouter"),
+                    })
+                    nueva = "ia_match" if res["decision"] == "same_business" else "no_match"
+                    db.execute(text("""
+                        UPDATE staging.posibles_matches
+                        SET decision=:dec, creado_por_ia=true,
+                            confianza_ia=:conf, razon_decision=:razon, updated_at=NOW()
+                        WHERE match_id=:mid
+                    """), {
+                        "dec": nueva, "conf": res.get("confianza", 0),
+                        "razon": res.get("razon", ""), "mid": mid,
+                    })
+                    procesados += 1
+                except Exception:
+                    errores += 1
+
+            db.commit()
+            logger.info(f"  Batch IA: {procesados}/{len(matches)} procesados")
+
+    else:
+        # ── Modo individual: Claude como fallback ────────────────────────────
+        for match_id, sid_a, sid_b, score in matches:
+            reg_a = _obtener_registro(db, sid_a)
+            reg_b = _obtener_registro(db, sid_b)
+            if not reg_a or not reg_b:
+                continue
+
+            resultado = resolver_fn(reg_a, reg_b, score)
+            if resultado.get("decision") == "error":
+                errores += 1
+                continue
+
+            try:
+                db.execute(text("""
+                    INSERT INTO staging.ia_validaciones
+                        (tipo_validacion, staging_id_a, staging_id_b,
+                         input_json, output_json, decision, confianza, modelo, tokens_usados)
+                    VALUES ('deduplicacion_dudosa', :a, :b, :inp, :out, :dec, :conf, :mod, 0)
+                """), {
+                    "a": sid_a, "b": sid_b,
+                    "inp": json.dumps({"a": reg_a, "b": reg_b}),
+                    "out": json.dumps(resultado),
+                    "dec": resultado["decision"],
+                    "conf": resultado.get("confianza", 0),
+                    "mod": resultado.get("modelo", "claude"),
+                })
+                nueva = "ia_match" if resultado["decision"] == "same_business" else "no_match"
+                db.execute(text("""
+                    UPDATE staging.posibles_matches
+                    SET decision=:dec, creado_por_ia=true,
+                        confianza_ia=:conf, razon_decision=:razon, updated_at=NOW()
+                    WHERE match_id=:mid
+                """), {
+                    "dec": nueva, "conf": resultado.get("confianza", 0),
+                    "razon": resultado.get("razon", ""), "mid": match_id,
+                })
+                procesados += 1
+                if procesados % 10 == 0:
+                    db.commit()
+            except Exception:
+                errores += 1
+
+        db.commit()
+
     return {
         "procesados": procesados,
         "errores": errores,
-        "proveedor": "openrouter" if preferir_openrouter else "claude",
+        "proveedor": "openrouter_batch" if preferir_openrouter else "claude",
     }
 
 

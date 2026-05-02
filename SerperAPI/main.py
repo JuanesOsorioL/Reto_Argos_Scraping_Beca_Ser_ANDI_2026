@@ -124,7 +124,7 @@ def save_progress(data: dict):
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
 
-def build_queries(ciudades: list, limit_keywords=None):
+def build_queries(ciudades: list, limit_keywords=None, keywords=None):
     """
     Genera todas las combinaciones de keyword × ciudad.
     
@@ -155,8 +155,14 @@ def build_queries(ciudades: list, limit_keywords=None):
     if not ciudades or not isinstance(ciudades, list):
         raise ValueError("ciudades debe ser una lista no vacía")
     
-    # Limitar keywords si se especifica (útil para modo prueba)
-    keywords = KEYWORDS_BUSQUEDA[:limit_keywords] if limit_keywords else KEYWORDS_BUSQUEDA
+    # Prioridad: keywords personalizadas > limit_keywords > todas las de config
+    if keywords:
+        base_keywords = keywords
+    elif limit_keywords:
+        base_keywords = KEYWORDS_BUSQUEDA[:limit_keywords]
+    else:
+        base_keywords = KEYWORDS_BUSQUEDA
+    keywords = base_keywords
     
     queries = []
     for keyword in keywords:
@@ -177,7 +183,7 @@ def build_queries(ciudades: list, limit_keywords=None):
 # FUNCIÓN PRINCIPAL: do_scrape
 # ═══════════════════════════════════════════════════════════════════════════════
 
-async def do_scrape(ciudades: list, limit_keywords=None, page=1):
+async def do_scrape(ciudades: list, limit_keywords=None, page=1, keywords=None):
     """
     Función principal del scraping Serper.
     
@@ -237,14 +243,17 @@ async def do_scrape(ciudades: list, limit_keywords=None, page=1):
         raise ValueError("❌ CIUDADES REQUERIDAS EN PARÁMETRO")
     
     run_id  = str(uuid.uuid4())
-    queries = build_queries(ciudades=ciudades, limit_keywords=limit_keywords)  # ✅ Pasar ciudades
+    queries = build_queries(ciudades=ciudades, limit_keywords=limit_keywords, keywords=keywords)
     
     # ─── MOSTRAR INICIO EN LOGS ─────────────────────────────────────────────
     print(f"\n{'='*80}")
     print(f"  🚀 SERPER SCRAPING - INICIADO")
     print(f"{'='*80}")
+    keywords_usados = keywords if keywords else (KEYWORDS_BUSQUEDA[:limit_keywords] if limit_keywords else KEYWORDS_BUSQUEDA)
     print(f"  run_id:          {run_id}")
     print(f"  Inicio:          {datetime.now(timezone.utc).isoformat()}")
+    print(f"  Keywords:        {len(keywords_usados)}")
+    print(f"  Municipios:      {len(ciudades)}")
     print(f"  Total queries:   {len(queries)}")
     print(f"  Página:          {page}")
     print(f"  JSON Backup:     {'✅ SÍ' if SAVE_JSON_BACKUP else '❌ NO'}")

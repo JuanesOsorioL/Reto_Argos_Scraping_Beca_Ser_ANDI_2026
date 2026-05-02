@@ -241,10 +241,7 @@ class OpenRouterService:
         fuente_b: str,
         score_actual: int,
     ) -> dict[str, Any]:
-        """
-        Pregunta si dos registros son el mismo negocio.
-        Prompt ultra-compacto para ahorrar tokens.
-        """
+        """Pregunta si dos registros son el mismo negocio (prompt ultra-compacto)."""
         prompt = (
             f"¿Mismo negocio?\n"
             f"A:\"{nombre_a}\" {municipio_a} [{fuente_a}]\n"
@@ -266,6 +263,64 @@ class OpenRouterService:
             }
 
         return {"decision": "error", "confianza": 0, "razon": resultado.get("razon", ""), "modelo": None}
+
+    def resolver_duplicados_batch(self, pares: list[dict]) -> list[dict]:
+        """
+        Resuelve múltiples pares en UNA sola llamada a la IA.
+        Cada par: {match_id, nombre_a, municipio_a, fuente_a, nombre_b, municipio_b, fuente_b, score}
+        Retorna lista de resultados con {match_id, decision, confianza, razon, modelo}.
+        """
+        if not pares:
+            return []
+
+        lineas = []
+        for i, p in enumerate(pares, 1):
+            tel_a = p.get("telefono_a", "")
+            tel_b = p.get("telefono_b", "")
+            tel_str = f" Tel:{tel_a}≈{tel_b}" if tel_a or tel_b else ""
+            lineas.append(
+                f"{i}) A:\"{p['nombre_a']}\" {p['municipio_a']}"
+                f" vs B:\"{p['nombre_b']}\" {p['municipio_b']}"
+                f"{tel_str} score:{p['score']}"
+            )
+
+        prompt = (
+            f"¿Cuáles pares son el MISMO negocio?\n"
+            + "\n".join(lineas)
+            + f"\nJSON:[{{\"id\":1,\"igual\":true/false,\"confianza\":0.0-1.0}},...]"
+        )
+
+        resultado = self.preguntar_con_rotacion(prompt, max_tokens=len(pares) * 30 + 20)
+
+        respuestas = []
+        if resultado["exito"]:
+            raw = resultado["respuesta"]
+            items = raw if isinstance(raw, list) else []
+            for item in items:
+                idx = item.get("id", 0) - 1
+                if 0 <= idx < len(pares):
+                    igual = item.get("igual", False)
+                    respuestas.append({
+                        "match_id": pares[idx]["match_id"],
+                        "decision": "same_business" if igual else "different_business",
+                        "confianza": int(float(item.get("confianza", 0.5)) * 100),
+                        "razon": item.get("nota", ""),
+                        "modelo": resultado["modelo_usado"],
+                    })
+
+        # Cualquier par sin respuesta → error
+        respondidos = {r["match_id"] for r in respuestas}
+        for p in pares:
+            if p["match_id"] not in respondidos:
+                respuestas.append({
+                    "match_id": p["match_id"],
+                    "decision": "error",
+                    "confianza": 0,
+                    "razon": "Sin respuesta en batch",
+                    "modelo": None,
+                })
+
+        return respuestas
 
     def validar_empresa_con_serper(
         self,

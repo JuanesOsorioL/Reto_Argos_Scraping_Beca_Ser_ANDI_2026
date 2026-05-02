@@ -1,6 +1,56 @@
 name: RetoArgos
 services:
 
+  ferreterias-api:
+    build:
+      context: ./api-ferreterias       # carpeta donde esta el proyecto
+      dockerfile: Dockerfile
+    container_name: ferreterias-api
+    restart: unless-stopped
+    ports:
+      - "8009:8009"                    # externo 8008 para no chocar con otros
+    environment:
+      # ── Base de datos (misma que todos los demas servicios) ──────────────
+      DATABASE_URL: postgresql://postgres:1234@postgressArgos:5432/postgres
+
+      # ── IA gratuita OpenRouter ───────────────────────────────────────────
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      PREFERIR_OPENROUTER: "true"
+
+      # ── Anthropic Claude (fallback, opcional) ────────────────────────────
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+      # ── Serper - busqueda Google (opcional) ─────────────────────────────
+      SERPER_API_KEY: ${SERPER_API_KEY:-}
+
+      # ── Webhook n8n (misma URL que usan los otros servicios) ─────────────
+      N8N_WEBHOOK_URL: https://drapery-saddlebag-retainer.ngrok-free.dev/webhook-test/final
+      API_BASE_URL: http://ferreterias-api:8009
+
+      # ── Pipeline ─────────────────────────────────────────────────────────
+      USAR_IA_DUPLICADOS: "true"
+      INCLUIR_RUES_INACTIVOS: "false"
+      CREAR_JSON_CAMPOS_DUDOSOS: "false"
+      CREAR_JSON_POSIBLES_MATCHES: "false"
+
+      # ── Rutas dentro del contenedor ──────────────────────────────────────
+      RUTA_CAMPOS_DUDOSOS:    /app/respaldos/campos_dudosos
+      RUTA_POSIBLES_MATCHES:  /app/respaldos/posibles_matches
+      RUTA_REPORTE_EJECUCION: /app/respaldos/reporte_ejecucion
+
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    depends_on:
+      postgressArgos:
+        condition: service_healthy
+    volumes:
+      - ./api-ferreterias/respaldos:/app/respaldos
+    networks:
+      - automatizacion_net
+
   validar-ciudades-api:
     build:
       context: ./ValidarCiudadesAPI
@@ -29,6 +79,27 @@ services:
       start_period: 20s
     networks:
       - automatizacion_net
+
+  analisis-cobertura-api:
+    build:
+      context: ./AnalisisCoberturaAPI
+      dockerfile: Dockerfile
+    container_name: analisis-cobertura-api
+    ports:
+      - "8008:8008"
+    environment:
+      DB_HOST: postgressArgos
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      UMBRAL_BAJO_COBERTURA: ${UMBRAL_BAJO_COBERTURA:-5}
+      ANALISIS_PORT: 8008
+    networks:
+      - automatizacion_net
+    restart: unless-stopped
+
+
 
   ngrok-n8n:
     build:
@@ -115,6 +186,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - automatizacion_net
+
+
+
 
   rues-api:
     build:
@@ -321,10 +395,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # ───────────────────────────────────────────────────────────────────────────
-  # FOURSQUARE API — Servidor FastAPI
-  # ───────────────────────────────────────────────────────────────────────────
-  
+
   foursquare-api:
     # Construir imagen desde Dockerfile
     build:

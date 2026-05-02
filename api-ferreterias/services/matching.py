@@ -16,6 +16,9 @@ def detectar_todos_los_matches(db) -> dict:
     logger.info("🔍 Iniciando detección de duplicados...")
     conteos = {}
 
+    # Regla 0: Nombre exacto + municipio → auto_match
+    conteos['nombre_exacto'] = _detectar_matches_nombre_exacto(db)
+
     # Reglas fuertes (score 100) → auto_match
     conteos['mismo_nit'] = _detectar_matches_nit(db)
     conteos['mismo_id_rm'] = _detectar_matches_id_rm(db)
@@ -32,6 +35,33 @@ def detectar_todos_los_matches(db) -> dict:
     total = sum(conteos.values())
     logger.info(f"✅ Detección completada. Total matches: {total}")
     return conteos
+
+
+def _detectar_matches_nombre_exacto(db) -> int:
+    """Regla 0: Nombre normalizado idéntico + municipio → score 100, auto_match"""
+    result = db.execute(text("""
+        INSERT INTO staging.posibles_matches
+            (staging_id_a, staging_id_b, regla_match, score_match, decision, razon_decision)
+        SELECT
+            a.staging_id,
+            b.staging_id,
+            'NOMBRE_EXACTO_MUNICIPIO',
+            100,
+            'auto_match',
+            'Nombre normalizado idéntico en mismo municipio'
+        FROM staging.empresas_unificadas a
+        JOIN staging.empresas_unificadas b
+            ON a.nombre_normalizado = b.nombre_normalizado
+            AND a.municipio_norm = b.municipio_norm
+            AND a.staging_id < b.staging_id
+        WHERE a.nombre_normalizado IS NOT NULL
+          AND length(a.nombre_normalizado) >= 4
+        ON CONFLICT (staging_id_a, staging_id_b) DO NOTHING
+    """))
+    db.commit()
+    n = result.rowcount
+    logger.info(f"  ✓ NOMBRE_EXACTO_MUNICIPIO: {n} matches")
+    return n
 
 
 def _detectar_matches_nit(db) -> int:

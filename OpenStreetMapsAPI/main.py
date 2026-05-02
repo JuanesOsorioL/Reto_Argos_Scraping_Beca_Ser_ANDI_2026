@@ -55,8 +55,9 @@ ESPERA_SOBRECARGA   = 60    # si todos fallan, esperar 60s antes del último rei
 #TEXT_REGEX = r"(ferreter)"
 
 
-TEXT_REGEX = r"(ferreterias|depositos de materiales|depositos y ferreteria|bodegas de construccion|centro ferretero|materiales de construccion|materiales para construccion|cemento|distribuidoras de cemento|venta de cemento|hierro y cemento|concreto|concreto premezclado|prefabricados de concreto|morteros|mortero seco|agregados para construccion|arena y balasto|arena grava y triturado|obra gris|bloqueras|ladrilleras)"
+#TEXT_REGEX = r"(ferreterias|depositos de materiales|depositos y ferreteria|bodegas de construccion|centro ferretero|materiales de construccion|materiales para construccion|cemento|distribuidoras de cemento|venta de cemento|hierro y cemento|concreto|concreto premezclado|prefabricados de concreto|morteros|mortero seco|agregados para construccion|arena y balasto|arena grava y triturado|obra gris|bloqueras|ladrilleras)"
 
+TEXT_REGEX = r"(ferreterias|depositos de materiales|materiales de construccion|concreto|agregados para construccion|bloqueras)"
 
 
 # 5 familias de tags OSM
@@ -228,6 +229,32 @@ def init_db():
                     -- RAW completo (todos los tags sin excepción)
                     raw_response     JSONB
                 );
+
+                -- Migración: añade columnas que pueden faltar en tablas creadas con esquemas anteriores
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS osm_type         TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS osm_id           BIGINT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS familia_osm      TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS shop_tag         TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS trade_tag        TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS brand            TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS operator_osm     TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS opening_hours    TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS website          TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS email_osm        TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS instagram        TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS facebook         TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS twitter          TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS addr_street      TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS addr_number      TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS addr_city        TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS addr_state       TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS addr_postcode    TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS description_osm  TEXT;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS raw_response     JSONB;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS score            INTEGER;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS aprobado_argos   BOOLEAN;
+                ALTER TABLE raw.overpass_ferreterias ADD COLUMN IF NOT EXISTS fecha_actualizacion TIMESTAMP;
+
                 CREATE INDEX IF NOT EXISTS idx_ov_municipio  ON raw.overpass_ferreterias (municipio);
                 CREATE INDEX IF NOT EXISTS idx_ov_dept       ON raw.overpass_ferreterias (departamento);
                 CREATE INDEX IF NOT EXISTS idx_ov_aprobado   ON raw.overpass_ferreterias (aprobado_argos);
@@ -487,40 +514,19 @@ def append_jsonl(filepath: Path, obj: dict):
 
 # ─── Orquestador ─────────────────────────────────────────────────────────────
 
-async def do_scrape(run_id: str, municipios: list = None):
-    """
-    Función principal del scraping Overpass.
-    
-    Args:
-        run_id (str): REQUERIDO. UUID único generado en api_runner
-        municipios (list[dict]): REQUERIDO. Lista de municipios a procesar
-            Ej: [
-                {"municipio": "Bogotá", "departamento": "Cundinamarca"},
-                {"municipio": "Medellín", "departamento": "Antioquia"}
-            ]
-    
-    Si municipios es None: LANZA ERROR
-    """
-    
-    # ✅ VALIDACIÓN OBLIGATORIA
+async def do_scrape(run_id: str, municipios: list = None, keywords: list = None):
     if not run_id:
-        raise ValueError("❌ RUN_ID REQUERIDO EN PARÁMETRO")
-    
+        raise ValueError("run_id es requerido")
+
     if not municipios or not isinstance(municipios, list):
         raise ValueError(
-            "❌ MUNICIPIOS REQUERIDOS EN PARÁMETRO. "
-            "API debe enviar lista de municipios con estructura: "
-            "[{'municipio': 'nombre', 'departamento': 'depto'}, ...]"
+            "municipios es requerido: [{'municipio': 'nombre', 'departamento': 'depto'}, ...]"
         )
-    
-    # Validar estructura
+
     for i, m in enumerate(municipios):
         if not isinstance(m, dict) or "municipio" not in m or "departamento" not in m:
-            raise ValueError(
-                f"Municipio #{i} debe tener 'municipio' y 'departamento': {m}"
-            )
+            raise ValueError(f"Municipio #{i} debe tener 'municipio' y 'departamento': {m}")
 
-    # ✅ run_id VIENE DEL PARÁMETRO, NO SE GENERA AQUÍ
     inicio_at = datetime.now(timezone.utc)
 
     setup_logging()
@@ -528,14 +534,28 @@ async def do_scrape(run_id: str, municipios: list = None):
     if SAVE_OUTPUT_FILES:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Familias dinámicas: si llegan keywords, sobreescribir text_search
+    familias = dict(FAMILIAS_OSM)
+    if keywords:
+        regex = "|".join(keywords)
+        familias["text_search"] = {
+            "descripcion": "Búsqueda por nombre (regex personalizado)",
+            "tags": f'nwr["name"~"({regex})", i](area.a);',
+            "es_regex": True,
+        }
 
     log.info("=" * 60)
     log.info(f"OVERPASS SCRAPER — run_id: {run_id}")
     log.info(f"Inicio:            {inicio_at.isoformat()}")
     log.info(f"Municipios:        {len(municipios)}")
-    log.info(f"Familias OSM:      {len(FAMILIAS_OSM)}")
-    log.info(f"Queries estimadas: {len(municipios) * len(FAMILIAS_OSM)}")
+    log.info(f"Familias OSM:      {len(familias)}")
+    log.info(f"Queries estimadas: {len(municipios) * len(familias)}")
     log.info(f"Pausa entre queries: {PAUSE_ENTRE_QUERIES}s")
+    if keywords:
+        log.info(f"[text_search] Keywords recibidas: {len(keywords)} → {keywords}")
+    else:
+        kw_default = TEXT_REGEX.strip("()").split("|")
+        log.info(f"[text_search] Keywords por defecto: {len(kw_default)} → {kw_default}")
     log.info("=" * 60)
 
     init_db()
@@ -563,15 +583,14 @@ async def do_scrape(run_id: str, municipios: list = None):
         "aprobados":       0,
     }
 
-    total_jobs = len(municipios) * len(FAMILIAS_OSM)
+    total_jobs = len(municipios) * len(familias)
     job_num    = 0
 
-    # ✅ Municipios ya vienen dinámicos en el parámetro
-    for muni_info in municipios:  # ← municipios ya es dinámico
+    for muni_info in municipios:
         muni = muni_info["municipio"]
         dept = muni_info["departamento"]
 
-        for familia_id, familia_meta in FAMILIAS_OSM.items():
+        for familia_id, familia_meta in familias.items():
             job_num += 1
             es_regex = familia_meta.get("es_regex", False)
             log.info(f"[{job_num}/{total_jobs}] {muni} ({dept}) | {familia_id}")

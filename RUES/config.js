@@ -55,6 +55,31 @@ const CONFIG = {
 
 
  KEYWORDS_BUSQUEDA: [
+    "ferreterias",
+    "depositos de materiales",
+    "materiales de construccion",
+    "concreto",
+    "agregados para construccion",
+    "bloqueras"
+  ],
+
+
+  /*
+
+
+antes
+        "ferreterias",
+    "depositos de materiales",
+    "materiales de construccion",
+    "cemento",
+    "venta de cemento",
+    "distribuidoras de cemento",
+    "hierro y cemento",
+    "concreto",
+    "agregados para construccion",
+    "bloqueras"
+
+
 "ferreterias",
     "depositos de materiales",
     "depositos y ferreteria",
@@ -83,8 +108,9 @@ const CONFIG = {
 
     "bloqueras",
     "ladrilleras"
-  ],
 
+
+  */
 
 
 

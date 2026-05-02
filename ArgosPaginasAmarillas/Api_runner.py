@@ -23,14 +23,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+import config
 
 class UbicacionModel(BaseModel):
     municipio: str
     departamento: str
 
 class ScrapPaginasAmarillasRequest(BaseModel):
-    selected_locations: List[UbicacionModel]  # ✅ REQUERIDO
+    selected_locations: Optional[List[UbicacionModel]] = None
+    keywords: Optional[List[str]] = None
 
 app = FastAPI(title="Argos Scraper — Páginas Amarillas")
 
@@ -47,7 +49,8 @@ estado = {
     "ultimo_status": "sin_correr",
     "ultimo_error": None,
     "metricas": None,
-    "ciudades_actual": None,  # ← AGREGAR ESTO
+    "ciudades_actual": None,
+    "keywords_actual": None,
 }
 
 
@@ -87,13 +90,12 @@ async def notificar_fin_run(payload: dict, headers: dict | None = None):
         print(f"[CALLBACK] Falló envío a n8n: {e}")
 
 
-async def ejecutar_scraper_background(run_id: str, ciudades: List[dict]):
+async def ejecutar_scraper_background(run_id: str, ciudades: List[dict], keywords: List[str]):
     global estado
     try:
         from main import main as do_scrape
 
-        # ✅ PASAR CIUDADES A do_scrape
-        metricas = await do_scrape(ciudades=ciudades)
+        metricas = await do_scrape(ciudades=ciudades, keywords=keywords)
 
         fin = datetime.now().isoformat()
         duracion = None
@@ -169,7 +171,8 @@ def status():
         "fin": estado["fin"],
         "duracion": estado["duracion"],
         "error": estado["ultimo_error"],
-        "ciudades_actual": estado["ciudades_actual"],  # ← AGREGAR
+        "ciudades_actual": estado["ciudades_actual"],
+        "keywords_actual": estado["keywords_actual"],
         "metricas": estado["metricas"],
     }
 
@@ -189,24 +192,18 @@ async def run_scraper(request: ScrapPaginasAmarillasRequest):
             }
         )
 
-    # ✅ Validar que haya al menos una ciudad
-    if not request.selected_locations or len(request.selected_locations) == 0:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "detail": "selected_locations es obligatorio y debe tener al menos una ciudad"
-            }
-        )
+    if not request.selected_locations:
+        ciudades = [
+            {"municipio": m, "departamento": d}
+            for m, d in config.CIUDAD_DEPARTAMENTO.items()
+        ]
+    else:
+        ciudades = [
+            {"municipio": loc.municipio.lower(), "departamento": loc.departamento}
+            for loc in request.selected_locations
+        ]
 
-    # ✅ Convertir a list[dict]
-    ciudades = [
-        {
-            "municipio": loc.municipio.lower(),
-            "departamento": loc.departamento
-        }
-        for loc in request.selected_locations
-    ]
+    keywords = request.keywords if request.keywords else config.KEYWORDS_BUSQUEDA
 
     run_id = str(uuid.uuid4())
     inicio = datetime.now().isoformat()
@@ -220,19 +217,21 @@ async def run_scraper(request: ScrapPaginasAmarillasRequest):
         "ultimo_status": "corriendo",
         "ultimo_error": None,
         "metricas": None,
-        "ciudades_actual": ciudades,  # ← AGREGAR
+        "ciudades_actual": ciudades,
+        "keywords_actual": keywords,
     })
 
-    # ✅ PASAR CIUDADES A BACKGROUND
-    asyncio.create_task(ejecutar_scraper_background(run_id, ciudades))
+    asyncio.create_task(ejecutar_scraper_background(run_id, ciudades, keywords))
 
     return {
         "status": "iniciado",
         "mensaje": "Scraper disparado con ciudades dinámicas.",
         "run_id": run_id,
         "inicio": inicio,
-        "ciudades": ciudades,  # ← AGREGAR
-        "cantidad_ciudades": len(ciudades),  # ← AGREGAR
+        "ciudades": ciudades,
+        "cantidad_ciudades": len(ciudades),
+        "keywords": keywords,
+        "cantidad_keywords": len(keywords),
         "webhook_n8n": N8N_WEBHOOK_URL,
     }
 
@@ -247,7 +246,8 @@ def resultado():
         "duracion": estado["duracion"],
         "error": estado["ultimo_error"],
         "en_curso": estado["scraping_en_curso"],
-        "ciudades": estado["ciudades_actual"],  # ← AGREGAR
+        "ciudades": estado["ciudades_actual"],
+        "keywords": estado["keywords_actual"],
         "metricas": estado["metricas"],
     }
 

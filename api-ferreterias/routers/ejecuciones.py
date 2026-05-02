@@ -32,6 +32,12 @@ class LimpiezaRequest(BaseModel):
         description="Lista de municipios del api_runner. null o [] = todos."
     )
 
+    # Keywords para filtrar RUES. null = usar defaults del loader
+    keywords_rues: Optional[List[str]] = Field(
+        default=None,
+        description="Keywords para filtrar raw.rues_detalle. null = usar los 10 defaults (ferreterias, cemento, etc.)."
+    )
+
     # Control pipeline
     limpiar_staging_anterior: bool = True
     crear_json_campos_dudosos: Optional[bool] = None
@@ -65,6 +71,12 @@ class LimpiezaRequest(BaseModel):
     ia_batch_size: Optional[int] = None
     ia_min_score: Optional[int] = None
     ia_max_score: Optional[int] = None
+
+    # Log de merging
+    merge_log_detalle: int = Field(
+        default=10,
+        description="Ejemplos de field-level merging en el log. 0=ninguno, 10=default, -1=todos."
+    )
 
 
 @router.post("/iniciar", status_code=202, summary="Iniciar pipeline de limpieza y consolidacion")
@@ -129,6 +141,7 @@ async def iniciar_limpieza(
         execution_id=execution_id,
         request_dict=request.model_dump(),
         municipios_dict=municipios_dict,
+        keywords_rues=request.keywords_rues,
         webhook_url=request.n8n_webhook_url or config.N8N_WEBHOOK_URL or "",
     )
 
@@ -265,7 +278,7 @@ def listar_ejecuciones(limit: int = 10, db: Session = Depends(get_db)):
     }
 
 
-def _run_pipeline_background(execution_id, request_dict, municipios_dict, webhook_url):
+def _run_pipeline_background(execution_id, request_dict, municipios_dict, keywords_rues, webhook_url):
     from db.connection import SessionLocal
     from workers.pipeline import ejecutar_pipeline_completo_v2
 
@@ -276,6 +289,7 @@ def _run_pipeline_background(execution_id, request_dict, municipios_dict, webhoo
             config=config,
             execution_id=execution_id,
             municipios=municipios_dict,
+            keywords_rues=keywords_rues,
             limpiar_staging=request_dict.get("limpiar_staging_anterior", True),
             usar_ia=request_dict.get("usar_ia_duplicados"),
             preferir_openrouter=request_dict.get("preferir_openrouter", True),
@@ -284,6 +298,7 @@ def _run_pipeline_background(execution_id, request_dict, municipios_dict, webhoo
             incluir_rues_inactivos=request_dict.get("incluir_rues_inactivos", True),
             crear_json_campos_dudosos=request_dict.get("crear_json_campos_dudosos"),
             crear_json_posibles_matches=request_dict.get("crear_json_posibles_matches"),
+            merge_log_detalle=request_dict.get("merge_log_detalle", 10),
             webhook_url=webhook_url,
         )
     finally:

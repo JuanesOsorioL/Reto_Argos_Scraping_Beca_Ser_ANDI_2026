@@ -19,6 +19,6 @@ COPY . .
 # Crear carpetas de respaldo
 RUN mkdir -p respaldos/campos_dudosos respaldos/posibles_matches respaldos/reporte_ejecucion
 
-EXPOSE 8000
+EXPOSE 8009
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8009", "--workers", "2"]

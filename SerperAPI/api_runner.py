@@ -31,21 +31,22 @@ import json
 from datetime import datetime, timedelta
 import httpx
 
-from config import PORT, N8N_WEBHOOK_URL, PROGRESS_FILE
+from config import PORT, N8N_WEBHOOK_URL, PROGRESS_FILE, CIUDAD_DEPARTAMENTO, KEYWORDS_BUSQUEDA
 from db import reset_all
 
 from pydantic import BaseModel
 from typing import List
-    
-    # ✅ AGREGAR ESTOS MODELOS al inicio de api_runner.py (después de los imports)
-    
+
 class UbicacionModel(BaseModel):
     municipio: str
     departamento: str
+    total_registros: int | None = None
+    detalle: str | None = None
 
 class ScrapSerperRequest(BaseModel):
-    """Body REQUERIDO para POST /scrape/serper"""
-    selected_locations: List[UbicacionModel]
+    """Body para POST /scrape/serper — todos los campos son opcionales"""
+    selected_locations: List[UbicacionModel] | None = None
+    keywords: List[str] | None = None
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CREAR APP FASTAPI
@@ -171,27 +172,28 @@ async def notificar_fin_run(payload: dict):
 # FUNCIÓN PRINCIPAL: Ejecutar background
 # ═══════════════════════════════════════════════════════════════════════════════
 
-async def ejecutar_background(run_id, ciudades: list, limit_keywords=None, limit_cities=None, tipo_ejecucion="produccion"):
+async def ejecutar_background(run_id, ciudades: list, limit_keywords=None, limit_cities=None, tipo_ejecucion="produccion", keywords=None):
     """
     Ejecuta el scraping en background (no bloquea la API).
-    
+
     Importa main.py, llama do_scrape(), captura excepciones,
     actualiza estado global y notifica a n8n.
-    
+
     Args:
         run_id (str): UUID único del run
         limit_keywords (int): Si prueba, cuántos keywords
         limit_cities (int): Si prueba, cuántas ciudades
         tipo_ejecucion (str): "produccion" | "prueba" | "resume"
+        keywords (list[str]): Keywords personalizadas; si None usa las de config
     """
     global estado
-    
+
     try:
         # Importar aquí para evitar circular imports
         from main import do_scrape, PauseRequested, TokensDepletedPause
-        
+
         # Llamar la función principal
-        metricas = await do_scrape(ciudades=ciudades, limit_keywords=limit_keywords, page=1)  # ✅ PASAR CIUDADES
+        metricas = await do_scrape(ciudades=ciudades, limit_keywords=limit_keywords, page=1, keywords=keywords)
         
         # Calcular fin y duración
         fin = datetime.now().isoformat()
@@ -284,16 +286,17 @@ async def ejecutar_background(run_id, ciudades: list, limit_keywords=None, limit
         })
 
 
-def iniciar(ciudades: list, limit_keywords=None, limit_cities=None, tipo_ejecucion="produccion"):
+def iniciar(ciudades: list, limit_keywords=None, limit_cities=None, tipo_ejecucion="produccion", keywords=None):
     """
     Inicia un nuevo scraping en background.
-    
+
     Args:
         ciudades (list[dict]): REQUERIDO. Lista de ciudades a procesar
         limit_keywords (int): Si int, solo procesar primeros N keywords
         limit_cities (int): Si int, solo procesar primeras N ciudades
         tipo_ejecucion (str): "produccion" | "prueba" | "resume"
-    
+        keywords (list[str]): Keywords personalizadas; si None usa las de config
+
     Returns:
         tuple: (run_id, inicio) o None si ya hay uno en curso
     """
@@ -322,14 +325,15 @@ def iniciar(ciudades: list, limit_keywords=None, limit_cities=None, tipo_ejecuci
         "limit_cities": limit_cities,
     })
     
-     # Crear tarea en background (no bloquea)
+    # Crear tarea en background (no bloquea)
     asyncio.create_task(
         ejecutar_background(
             run_id=run_id,
-            ciudades=ciudades,  # ✅ PASAR CIUDADES
+            ciudades=ciudades,
             limit_keywords=limit_keywords,
             limit_cities=limit_cities,
-            tipo_ejecucion=tipo_ejecucion
+            tipo_ejecucion=tipo_ejecucion,
+            keywords=keywords,
         )
     )
     
@@ -439,22 +443,21 @@ async def run_completo(request: ScrapSerperRequest):
             -d '{"selected_locations": [{"municipio": "bogota", "departamento": "Cundinamarca"}]}'
     """
     
-    # ✅ Validar que haya ciudades
-    if not request.selected_locations or len(request.selected_locations) == 0:
-        return JSONResponse(status_code=400, content={
-            "status": "error",
-            "detail": "selected_locations es obligatorio y debe tener al menos una ciudad"
-        })
-    
-    # ✅ Convertir a list[dict]
-    ciudades = [
-        {
-            "municipio": loc.municipio.lower(),
-            "departamento": loc.departamento
-        }
-        for loc in request.selected_locations
-    ]
-    
+    # Construir lista de ciudades — si no llega nada, usar defaults de config
+    if not request.selected_locations:
+        ciudades = [{"municipio": k, "departamento": v} for k, v in CIUDAD_DEPARTAMENTO.items()]
+        print(f"  ⚠️  selected_locations no enviado — usando {len(ciudades)} ciudades por defecto")
+    else:
+        ciudades = [
+            {"municipio": loc.municipio.lower(), "departamento": loc.departamento}
+            for loc in request.selected_locations
+        ]
+
+    keywords_efectivos = request.keywords if request.keywords else KEYWORDS_BUSQUEDA
+    print(f"  📍 Municipios recibidos: {len(ciudades)}")
+    print(f"  🔑 Keywords recibidas:   {len(keywords_efectivos)}")
+    print(f"  🔢 Total queries:        {len(ciudades) * len(keywords_efectivos)}")
+
     # Verificar si ya hay uno en curso
     if estado["scraping_en_curso"]:
         return JSONResponse(status_code=409, content={
@@ -464,10 +467,11 @@ async def run_completo(request: ScrapSerperRequest):
         })
     
     result = iniciar(
-        ciudades=ciudades,  # ✅ PASAR CIUDADES
+        ciudades=ciudades,
         limit_keywords=None,
         limit_cities=None,
-        tipo_ejecucion="produccion"
+        tipo_ejecucion="produccion",
+        keywords=request.keywords or None,
     )
     
     if not result:

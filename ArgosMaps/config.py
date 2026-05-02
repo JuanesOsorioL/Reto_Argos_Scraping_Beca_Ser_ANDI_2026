@@ -57,7 +57,8 @@ KEYWORDS_BUSQUEDA = [
     "hierro y cemento", "bloqueras", "ladrilleras", "prefabricados de concreto", 
     "distribuidoras de cemento"
 ]
-"""
+
+primer filtro
 KEYWORDS_BUSQUEDA = [
    "ferreterias",
     "depositos de materiales",
@@ -91,6 +92,18 @@ KEYWORDS_BUSQUEDA = [
 
 
 
+"""
+KEYWORDS_BUSQUEDA = [
+    "ferreterias",
+    "depositos de materiales",
+    "materiales de construccion",
+    "concreto",
+    "agregados para construccion",
+    "bloqueras"
+]
+
+
+
 
 
 
@@ -118,7 +131,7 @@ MIN_DELAY_SECONDS     = 1.5 #2.0
 MAX_DELAY_SECONDS     = 3.0 #5.0
 HEADLESS              = os.getenv("HEADLESS", "true").strip().lower() == "true"
 # Reinicia el browser cada N combinaciones keyword+ciudad para liberar memoria V8
-BROWSER_RESTART_EVERY = int(os.getenv("BROWSER_RESTART_EVERY", "10"))
+BROWSER_RESTART_EVERY = int(os.getenv("BROWSER_RESTART_EVERY", "5"))
 
 
 # ─── Rutas de Salida (respaldo local) ────────────────────────────────────────

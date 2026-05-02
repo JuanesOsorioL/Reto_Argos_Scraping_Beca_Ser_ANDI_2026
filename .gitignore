@@ -101,3 +101,11 @@ api-ferreterias/output
 api-ferreterias/docker-compose.yml
 api-ferreterias/docker-compose-service.yml
 api-ferreterias/requirements_api_runner.txt
+
+
+AnalisisCoberturaAPI/__pycache__/
+AnalisisCoberturaAPI/venv/
+AnalisisCoberturaAPI/logs
+AnalisisCoberturaAPI/.env
+AnalisisCoberturaAPI/*.jsonl
+AnalisisCoberturaAPI/docker-compose.yml

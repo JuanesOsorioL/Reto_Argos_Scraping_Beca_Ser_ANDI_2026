@@ -30,6 +30,8 @@ CIUDAD_DEPARTAMENTO = {
 }
 
 """
+
+antes
 KEYWORDS_BUSQUEDA = [
     "ferreterias",
     "depositos-de-materiales",
@@ -51,7 +53,8 @@ KEYWORDS_BUSQUEDA = [
     "prefabricados-de-concreto",
     "distribuidoras-de-cemento"
 ]
-"""
+
+segunda vez unificadas
 KEYWORDS_BUSQUEDA = [
    "ferreterias",
     "depositos de materiales",
@@ -83,6 +86,50 @@ KEYWORDS_BUSQUEDA = [
     "ladrilleras"
 ]
 
+las de la primera fase
+KEYWORDS_MVP = [
+    "ferreterias",
+    "depositos de materiales",
+    "materiales de construccion",
+    "cemento",
+    "venta de cemento",
+    "distribuidoras de cemento",
+    "hierro y cemento",
+    "concreto",
+    "agregados para construccion",
+    "bloqueras"
+]
+
+
+segunda fase
+KEYWORDS_FASE_2 = [
+    "depositos y ferreteria",
+    "bodegas de construccion",
+    "centro ferretero",
+    "materiales para construccion",
+    "concreto premezclado",
+    "prefabricados de concreto",
+    "morteros",
+    "mortero seco",
+    "arena y balasto",
+    "arena grava y triturado",
+    "obra gris",
+    "ladrilleras"
+]
+
+
+
+
+"""
+
+KEYWORDS_BUSQUEDA = [
+     "ferreterias",
+    "depositos de materiales",
+    "materiales de construccion",
+    "concreto",
+    "agregados para construccion",
+    "bloqueras"
+]
 
 
 # ─── PostgreSQL ───────────────────────────────────────────────────────────────

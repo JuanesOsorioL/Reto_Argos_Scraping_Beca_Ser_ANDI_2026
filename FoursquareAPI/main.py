@@ -103,14 +103,15 @@ def enviar_webhook(webhook_url: str, datos: dict):
         print(f"  [HOOK] ❌ Error enviando webhook: {e}")
 
 
-async def do_scrape(ciudades: list,run_idfinal: str):
+async def do_scrape(ciudades: list, run_idfinal: str, keywords: list = None):
     """
     Función principal compatible con api_runner.py.
-    
+
     Args:
         ciudades: list[dict] — REQUERIDO
         Ej: [{"municipio": "bogota", "departamento": "Cundinamarca"}, ...]
-    
+        keywords: list[str] opcional — si no se envía, usa KEYWORDS_BUSQUEDA de config
+
     Ejecuta:
       1. Inicializa BD
       2. Loop sobre keywords × ciudades dinámicas
@@ -118,7 +119,7 @@ async def do_scrape(ciudades: list,run_idfinal: str):
       4. Guarda datos en PostgreSQL + JSONs
       5. Envía webhooks a n8n
     """
-    
+
     # ✅ VALIDACIÓN OBLIGATORIA
     if not ciudades:
         raise ValueError("❌ CIUDADES REQUERIDAS EN PARÁMETRO. "
@@ -133,17 +134,18 @@ async def do_scrape(ciudades: list,run_idfinal: str):
     
     ensure_output_dir()
     init_db()
-    
+
+    keywords_activas = keywords if keywords else KEYWORDS_BUSQUEDA
+
     # ──────────────────────────────────────────────────────────────────────
     # INICIALIZACIÓN DE LA CORRIDA
     # ──────────────────────────────────────────────────────────────────────
 
-    run_id=run_idfinal
-    #run_id = str(uuid.uuid4())
+    run_id = run_idfinal
     fecha_extraccion = datetime.now(timezone.utc)
     procesados = cargar_fsq_ids_procesados()
-    
-    total_combinaciones = len(KEYWORDS_BUSQUEDA) * len(ciudades)
+
+    total_combinaciones = len(keywords_activas) * len(ciudades)
     
     print(f"\n{'='*70}")
     print(f"[FOURSQUARE SCRAPER] run_id: {run_id}")
@@ -177,7 +179,7 @@ async def do_scrape(ciudades: list,run_idfinal: str):
         departamento = ciudad_obj["departamento"]
         near = f"{ciudad_nombre}, {departamento}, Colombia"  # Construir "near"
         
-        for keyword in KEYWORDS_BUSQUEDA:
+        for keyword in keywords_activas:
             combo_num += 1
             
             print(f"\n[{combo_num:3d}/{total_combinaciones}] '{keyword}' en {ciudad_nombre}")
@@ -424,7 +426,7 @@ async def do_scrape(ciudades: list,run_idfinal: str):
             "combinaciones_total": total_combinaciones,
             "combinaciones_procesadas": combo_num,
             "ciudades": len(ciudades),
-            "keywords": len(KEYWORDS_BUSQUEDA),
+            "keywords": len(keywords_activas),
             
             # Datos guardados
             "registros_nuevos": total_ins,

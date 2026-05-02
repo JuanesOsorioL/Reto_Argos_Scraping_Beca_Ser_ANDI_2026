@@ -111,11 +111,32 @@ def init_db():
     CREATE INDEX IF NOT EXISTS idx_progress_run_id ON raw.foursquare_progress (run_id);
     CREATE INDEX IF NOT EXISTS idx_progress_estado ON raw.foursquare_progress (estado);
     """
-    
+
+    migraciones = """
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_distance       INTEGER;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_date_created   TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_date_refreshed TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_website        TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_twitter        TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_instagram      TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_facebook       TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_description    TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_rating         DOUBLE PRECISION;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_price          INTEGER;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_hours          TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_verified       BOOLEAN;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_postal_code    TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_locality       TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_region         TEXT;
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS fsq_country        TEXT DEFAULT 'CO';
+    ALTER TABLE raw.foursquare_ferreterias ADD COLUMN IF NOT EXISTS raw_place          JSONB;
+    """
+
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(ddl)
+                cur.execute(migraciones)
             conn.commit()
         print("[DB] ✅ Tabla raw.foursquare_ferreterias verificada.")
     except Exception as e:

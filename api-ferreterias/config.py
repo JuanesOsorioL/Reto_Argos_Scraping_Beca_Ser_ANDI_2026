@@ -18,7 +18,7 @@ class Config:
 
     # IA deduplicacion
     USAR_IA_DUPLICADOS:  bool = os.getenv("USAR_IA_DUPLICADOS", "true").lower() == "true"
-    IA_MIN_SCORE:        int  = int(os.getenv("IA_MIN_SCORE", "60"))
+    IA_MIN_SCORE:        int  = int(os.getenv("IA_MIN_SCORE", "68"))
     IA_MAX_SCORE:        int  = int(os.getenv("IA_MAX_SCORE", "74"))
     IA_BATCH_SIZE:       int  = int(os.getenv("IA_BATCH_SIZE", "100"))
     IA_MODEL:            str  = os.getenv("IA_MODEL", "claude-opus-4-5")
@@ -31,6 +31,8 @@ class Config:
 
     # RUES inactivos
     INCLUIR_RUES_INACTIVOS: bool = os.getenv("INCLUIR_RUES_INACTIVOS", "true").lower() == "true"
+    # Empresas en liquidación (aplica a todas las fuentes)
+    INCLUIR_EN_LIQUIDACION: bool = os.getenv("INCLUIR_EN_LIQUIDACION", "false").lower() == "true"
 
     # n8n webhook
     N8N_WEBHOOK_URL:     str  = os.getenv("N8N_WEBHOOK_URL", "")

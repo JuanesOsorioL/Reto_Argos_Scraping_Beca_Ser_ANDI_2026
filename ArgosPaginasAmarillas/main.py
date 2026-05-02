@@ -34,15 +34,16 @@ def guardar_jsonl_local(datos: dict):
         f.write(json.dumps(datos_serializables, ensure_ascii=False) + "\n")
 
 
-async def main(ciudades: list):
+async def main(ciudades: list, keywords: list = None):
     """
     ciudades: list[dict] — REQUERIDO
-    Ej: [{"municipio": "cali", "departamento": "Valle del Cauca"}, ...]
+    keywords: list[str] — opcional, usa config.KEYWORDS_BUSQUEDA si no se pasa
     """
     if not ciudades:
         raise ValueError("❌ CIUDADES REQUERIDAS EN PARÁMETRO")
     if not isinstance(ciudades, list):
         raise TypeError(f"ciudades debe ser list, recibió {type(ciudades)}")
+    keywords = keywords or config.KEYWORDS_BUSQUEDA
     
     init_db()
 
@@ -52,7 +53,7 @@ async def main(ciudades: list):
 
     print(f"[*] Caché BD: {len(procesados)} URLs ya procesadas.")
     print(f"[*] Ciudades: {len(ciudades)}")
-    print(f"[*] Keywords: {len(config.KEYWORDS_BUSQUEDA)}")
+    print(f"[*] Keywords: {len(keywords)}")
     print(f"[*] run_id:   {run_id}")
     print(f"[*] Inicio:   {fecha_extraccion.isoformat()}\n")
 
@@ -61,7 +62,7 @@ async def main(ciudades: list):
 
         for ciudad_obj in ciudades:  # ✅ Dinámico
             ciudad = ciudad_obj["municipio"]
-            for keyword in config.KEYWORDS_BUSQUEDA:
+            for keyword in keywords:
                 print(f"\n{'='*50}")
                 print(f"[*] {ciudad} → {keyword}")
                 print(f"{'='*50}")

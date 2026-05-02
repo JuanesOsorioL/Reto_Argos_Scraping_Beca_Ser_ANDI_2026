@@ -28,6 +28,8 @@ const path = require('path');
 const { v4: uuidv4 }   = require('uuid');
 // Importa la configuración central del proyecto.
 const { CONFIG }       = require('./config');
+// Importa el mapeo de cámaras de comercio y sus utilidades.
+const { TODOS_LOS_CODIGOS } = require('./camaras');
 // Importa el logger compartido para trazabilidad del orquestador.
 const { logger }       = require('./logger');
 // Importa el factory del cliente RUES para crear una sesión HTTP aislada.
@@ -67,6 +69,8 @@ async function do_scrape(opciones = {}) {
     mode        = 'razon',
     // Define el conjunto de keywords por defecto desde la configuración central.
     keywords    = CONFIG.KEYWORDS_BUSQUEDA,
+    // Códigos de cámara a usar; si no se pasan, se usan todos los disponibles.
+    codCamaras  = TODOS_LOS_CODIGOS,
     // Activa detalle por defecto en la corrida principal.
     details     = true,
     // Activa endpoints extendidos por defecto.
@@ -94,8 +98,8 @@ async function do_scrape(opciones = {}) {
   logger.section(`RUES SCRAPER — run_id: ${run_id}`);
   // Registra la fecha/hora de inicio en formato ISO.
   logger.info(`Inicio:      ${inicioAt.toISOString()}`);
-  // Registra el resumen operativo de keywords, detalle y extendido.
-  logger.info(`Keywords:    ${keywords.length} | Detalle: ${details} | Extendido: ${extended}`);
+  // Registra el resumen operativo de keywords, cámaras, detalle y extendido.
+  logger.info(`Keywords:    ${keywords.length} | Camaras: ${codCamaras.length} | Combinaciones: ${keywords.length * codCamaras.length} | Detalle: ${details} | Extendido: ${extended}`);
   // Registra la configuración de concurrencia, delay y retries.
   logger.info(`Concurrencia:${concurrency} | Delay: ${delayMs}ms | Retries: ${maxRetries}`);
 
@@ -168,6 +172,14 @@ async function do_scrape(opciones = {}) {
 
   // Inicializa el arreglo que agrupará respuestas raw por keyword para el JSON final.
   const rawAgrupado = [];
+  // Genera las combinaciones keyword × codCamara para el run.
+  const combinaciones = [];
+  for (const keyword of keywords) {
+    for (const codCamara of codCamaras) {
+      combinaciones.push({ keyword, codCamara });
+    }
+  }
+
   // Inicializa el objeto de métricas acumuladas del run completo.
   const metricas = {
     // Guarda el identificador único de esta corrida.
@@ -180,7 +192,11 @@ async function do_scrape(opciones = {}) {
     duracion:             null,
     // Guarda cuántas keywords había planeadas.
     keywords_total:       keywords.length,
-    // Inicializa el contador de keywords procesadas exitosamente.
+    // Guarda cuántas cámaras se van a consultar.
+    camaras_total:        codCamaras.length,
+    // Guarda el total de combinaciones keyword × cámara.
+    combinaciones_total:  combinaciones.length,
+    // Inicializa el contador de combinaciones procesadas exitosamente.
     keywords_procesadas:  0,
     // Inicializa el acumulador total de resultados de búsqueda normalizados.
     busqueda_total:       0,
@@ -204,18 +220,18 @@ async function do_scrape(opciones = {}) {
     errores_totales:      0,
   };
 
-  // Recorre secuencialmente todas las keywords planificadas para la corrida.
-  for (let ki = 0; ki < keywords.length; ki++) {
-    // Obtiene la keyword actual del índice del bucle.
-    const keyword = keywords[ki];
-    // Imprime una sección visual indicando el progreso dentro del lote de keywords.
-    logger.section(`[${ki+1}/${keywords.length}] keyword: "${keyword}"`);
+  // Recorre secuencialmente todas las combinaciones keyword × cámara planificadas.
+  for (let ci = 0; ci < combinaciones.length; ci++) {
+    // Obtiene la keyword y el código de cámara de la combinación actual.
+    const { keyword, codCamara } = combinaciones[ci];
+    // Imprime una sección visual indicando el progreso dentro del lote.
+    logger.section(`[${ci+1}/${combinaciones.length}] keyword: "${keyword}" | camara: ${codCamara}`);
 
     try {
-      // Ejecuta el pipeline completo para la keyword actual pasando cliente, opciones y rutas auxiliares.
+      // Ejecuta el pipeline completo para la combinación actual pasando cliente, opciones y rutas auxiliares.
       const pipeline = await runSearchPipeline(
         client, mode, keyword,
-        { details, extended, limit, searchLimit, concurrency, delayMs, maxRetries, retryBaseMs },
+        { details, extended, limit, searchLimit, concurrency, delayMs, maxRetries, retryBaseMs, codCamara },
         run_id,
         procesados,
         jsonlPaths
@@ -268,13 +284,13 @@ async function do_scrape(opciones = {}) {
       // Acumula el total de errores operativos de esta keyword.
       metricas.errores_totales += errors.length;
 
-      // Registra un resumen de la keyword recién procesada.
-      logger.ok(`[KEYWORD] "${keyword}" → búsqueda:${pipeline.search.normalized.length} det_ok:${results.filter(r => !r.error && !r.skipped).length} aprobados:${results.filter(r => r.aprobado_argos).length}`);
+      // Registra un resumen de la combinación recién procesada.
+      logger.ok(`[COMBINACION] "${keyword}" | camara:${codCamara} → búsqueda:${pipeline.search.normalized.length} det_ok:${results.filter(r => !r.error && !r.skipped).length} aprobados:${results.filter(r => r.aprobado_argos).length}`);
 
     } catch (e) {
-      // Registra el fallo completo de la keyword actual sin detener necesariamente todo el lote.
-      logger.error(`[KEYWORD] "${keyword}" falló: ${e.message}`);
-      // Incrementa el contador global de errores si la keyword falló a nivel macro.
+      // Registra el fallo completo de la combinación actual sin detener necesariamente todo el lote.
+      logger.error(`[COMBINACION] "${keyword}" | camara:${codCamara} falló: ${e.message}`);
+      // Incrementa el contador global de errores si la combinación falló a nivel macro.
       metricas.errores_totales++;
     }
   }

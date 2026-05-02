@@ -342,16 +342,14 @@ async def crear_browser_context(p):
     return browser, context
 
 
-async def do_scrape(ciudades: list):
+async def do_scrape(ciudades: list, keywords: list = None):
     """
     Scraper Google Maps con ciudades OBLIGATORIAS.
-    
+
     Args:
-        ciudades: list[dict] — REQUERIDO, no puede ser None
+        ciudades: list[dict] — REQUERIDO
                   Ej: [{"municipio": "cali", "departamento": "Valle del Cauca"}, ...]
-    
-    Raises:
-        ValueError: Si ciudades es None o vacío
+        keywords: list[str] — OPCIONAL. Si None, usa KEYWORDS_BUSQUEDA de config.py.
     """
     
     # ✅ VALIDACIÓN OBLIGATORIA
@@ -382,8 +380,10 @@ async def do_scrape(ciudades: list):
     # Caché desde la BD — no reprocesamos URLs ya guardadas
     procesados = cargar_urls_procesadas()
     print(f"[*] Caché BD: {len(procesados)} negocios ya guardados (serán saltados).")
-    print(f"[*] Ciudades: {len(ciudades)} | Keywords: {len(KEYWORDS_BUSQUEDA)} | "
-          f"Combinaciones: {len(ciudades) * len(KEYWORDS_BUSQUEDA)}\n")
+    keywords_activas = keywords if keywords else KEYWORDS_BUSQUEDA
+    print(f"[*] Keywords: {len(keywords_activas)} {'(recibidas en body)' if keywords else '(defaults config.py)'}")
+    print(f"[*] Ciudades: {len(ciudades)} | Keywords: {len(keywords_activas)} | "
+          f"Combinaciones: {len(ciudades) * len(keywords_activas)}\n")
 
     # run_id y timestamp únicos para esta ejecución completa
     run_id           = str(uuid.uuid4())
@@ -391,24 +391,27 @@ async def do_scrape(ciudades: list):
     print(f"[*] run_id: {run_id}")
     print(f"[*] Inicio: {fecha_extraccion.isoformat()}\n")
 
-    async with async_playwright() as p:
-        browser, context = await crear_browser_context(p)
-        combo_count = 0
+    # Construir lista plana de combos (keyword, ciudad_obj) para poder dividirla en lotes
+    todos_los_combos = [
+        (keyword, ciudad_obj)
+        for keyword in keywords_activas
+        for ciudad_obj in ciudades
+    ]
+    print(f"[*] Total combos: {len(todos_los_combos)} | Lote driver: {BROWSER_RESTART_EVERY}\n")
 
-        try:
-            for keyword in KEYWORDS_BUSQUEDA:
-                for ciudad_obj in ciudades:  # ✅ Ciudades vienen dinámicas
+    for lote_inicio in range(0, len(todos_los_combos), BROWSER_RESTART_EVERY):
+        lote_combos = todos_los_combos[lote_inicio:lote_inicio + BROWSER_RESTART_EVERY]
+        lote_num    = lote_inicio // BROWSER_RESTART_EVERY + 1
+        print(f"\n[♻] Iniciando driver Playwright — lote {lote_num} "
+              f"(combos {lote_inicio + 1}–{lote_inicio + len(lote_combos)})...")
+
+        # Cada iteración de este for lanza y mata un proceso Node.js nuevo,
+        # liberando completamente el heap V8 acumulado.
+        async with async_playwright() as p:
+            browser, context = await crear_browser_context(p)
+            try:
+                for keyword, ciudad_obj in lote_combos:
                     ciudad = ciudad_obj["municipio"]
-
-                    # Reinicio periódico para liberar heap V8 acumulado
-                    combo_count += 1
-                    if combo_count > 1 and combo_count % BROWSER_RESTART_EVERY == 0:
-                        print(f"\n[♻] Reiniciando browser (combo #{combo_count}) para liberar memoria...")
-                        await context.close()
-                        await browser.close()
-                        browser, context = await crear_browser_context(p)
-                        print("[♻] Browser reiniciado.\n")
-
                     print(f"\n[*] Buscando: '{keyword}' en '{ciudad}'...")
                     page = await context.new_page()
                     try:
@@ -432,12 +435,14 @@ async def do_scrape(ciudades: list):
                         for url in lote:
                             procesados.add(url)
                         await human_pause()
-        finally:
-            await context.close()
-            await browser.close()
+            finally:
+                await context.close()
+                await browser.close()
 
-        print(f"\n[✓] Scraping completado. run_id: {run_id}")
-        print(f"[✓] Datos guardados en PostgreSQL y en: {OUTPUT_FILE}")
+        print(f"[♻] Driver liberado — lote {lote_num} completado.")
+
+    print(f"\n[✓] Scraping completado. run_id: {run_id}")
+    print(f"[✓] Datos guardados en PostgreSQL y en: {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

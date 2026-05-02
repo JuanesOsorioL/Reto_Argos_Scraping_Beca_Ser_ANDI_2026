@@ -23,7 +23,7 @@ import asyncio
 import uvicorn
 import uuid
 import os
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timedelta
 import httpx
 from dotenv import load_dotenv
@@ -46,19 +46,20 @@ class UbicacionModel(BaseModel):
 class ScrapGoogleMapsRequest(BaseModel):
     """
     Body REQUERIDO para POST /scrape/google-maps
-    
-    SIEMPRE debe incluir selected_locations.
-    NO PUEDE ser null o vacío.
-    
+
+    selected_locations es obligatorio.
+    keywords es opcional — si se omite usa los defaults de config.py.
+
     Ejemplo:
     {
         "selected_locations": [
-            {"municipio": "cali", "departamento": "Valle del Cauca"},
-            {"municipio": "bogota", "departamento": "Cundinamarca"}
-        ]
+            {"municipio": "cali", "departamento": "Valle del Cauca"}
+        ],
+        "keywords": ["ferreterias", "cemento"]   // opcional
     }
     """
-    selected_locations: List[UbicacionModel]  # ✅ REQUERIDO, no opcional
+    selected_locations: List[UbicacionModel]
+    keywords: Optional[List[str]] = None
 
 
 
@@ -122,18 +123,16 @@ async def notificar_fin_run(payload: dict, headers: dict | None = None):
         print(f"[CALLBACK] Falló envío a n8n: {e}")
 
 
-async def ejecutar_scraper_background(run_id: str, ciudades: List[dict]):
+async def ejecutar_scraper_background(run_id: str, ciudades: List[dict], keywords: Optional[List[str]] = None):
     """
     Corre el scraper en segundo plano sin bloquear la respuesta HTTP.
-    AHORA RECIBE CIUDADES COMO PARÁMETRO.
     Al finalizar, actualiza estado y notifica a n8n.
     """
     global estado
     try:
         from main import do_scrape
 
-         # ✅ IMPORTANTE: Pasar ciudades a do_scrape()
-        metricas = await do_scrape(ciudades=ciudades)
+        metricas = await do_scrape(ciudades=ciudades, keywords=keywords)
 
         fin = datetime.now().isoformat()
         duracion = None
@@ -284,8 +283,7 @@ async def run_scraper(request: ScrapGoogleMapsRequest):
         "ciudades_actual": ciudades,  # ← Guardar ciudades
     })
 
-    # ✅ PASAR CIUDADES A BACKGROUND
-    asyncio.create_task(ejecutar_scraper_background(run_id, ciudades))
+    asyncio.create_task(ejecutar_scraper_background(run_id, ciudades, request.keywords))
 
     return {
         "status": "iniciado",
@@ -294,6 +292,7 @@ async def run_scraper(request: ScrapGoogleMapsRequest):
         "inicio": inicio,
         "ciudades": ciudades,
         "cantidad_ciudades": len(ciudades),
+        "keywords": request.keywords or "defaults (config.py)",
         "webhook_n8n": N8N_WEBHOOK_URL,
     }
 

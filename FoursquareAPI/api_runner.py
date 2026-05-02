@@ -26,7 +26,7 @@ from config import API_PORT, API_HOST, OUTPUT_FILE, JSON_RAW_FILE, JSON_FLAT_FIL
 from db import init_db, obtener_estadisticas
 from main import do_scrape
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class UbicacionModel(BaseModel):
     municipio: str
@@ -35,6 +35,7 @@ class UbicacionModel(BaseModel):
 class ScrapFoursquareRequest(BaseModel):
     """Body REQUERIDO para POST /scrape/foursquare"""
     selected_locations: List[UbicacionModel]
+    keywords: Optional[List[str]] = None  # Si no se envía, usa KEYWORDS_BUSQUEDA de config
 
 # ──────────────────────────────────────────────────────────────────────────────
 # INICIALIZACIÓN DE FASTAPI
@@ -83,39 +84,34 @@ def calcular_duracion(inicio_iso: str | None, fin_iso: str | None):
     except Exception:
         return None
 
-async def ejecutar_background(run_id: str, ciudades: List[dict]):
+async def ejecutar_background(run_id: str, ciudades: List[dict], keywords: Optional[List[str]] = None):
     """
     Ejecuta el scraping en background (no bloquea la API).
-    
+
     Args:
         run_id: UUID de la corrida
         ciudades: list[dict] de ciudades a procesar
+        keywords: lista de keywords opcional
     """
     global estado_global
     try:
         print(f"\n[API] 🚀 Iniciando scraping con run_id: {run_id}")
         print(f"[API] 📍 Ciudades: {[c['municipio'] for c in ciudades]}")
-        metricas = await do_scrape(ciudades=ciudades,run_idfinal=run_id)  # ✅ PASAR CIUDADES y runid
+        metricas = await do_scrape(ciudades=ciudades, run_idfinal=run_id, keywords=keywords)
         
         fin = datetime.now()
-        duracion = (fin - datetime.fromisoformat(estado_global["inicio"])).total_seconds()
-        duracion = None
+        duracion_s = (fin - datetime.fromisoformat(estado_global["inicio"])).total_seconds()
+        duracion_str = f"{int(duracion_s // 60)}m {int(duracion_s % 60)}s"
 
-        if isinstance(metricas, dict):
-            duracion = metricas.get("duracion")
-
-        if not duracion:
-            duracion = calcular_duracion(estado_global["inicio"], fin)
-        
         estado_global.update({
             "scraping_en_curso": False,
             "fin": fin.isoformat(),
-            "duracion": f"{duracion:.0f}s",
+            "duracion": duracion_str,
             "ultimo_status": "ok",
             "ultimo_error": None,
             "en_pausa": False,
         })
-        print(f"[API] ✅ Scraping completado en {duracion:.0f}s")
+        print(f"[API] ✅ Scraping completado en {duracion_str}")
     
     except Exception as e:
         fin = datetime.now()
@@ -287,8 +283,8 @@ async def run_scraper(request: ScrapFoursquareRequest):
         "ciudades_actual": ciudades,  # ← AGREGAR
     })
     
-    # ✅ PASAR CIUDADES A BACKGROUND
-    asyncio.create_task(ejecutar_background(run_id, ciudades))
+    # ✅ PASAR CIUDADES Y KEYWORDS A BACKGROUND
+    asyncio.create_task(ejecutar_background(run_id, ciudades, request.keywords))
     
     return {
         "status": "iniciado",

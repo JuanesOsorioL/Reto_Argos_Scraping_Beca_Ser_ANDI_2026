@@ -18,11 +18,25 @@ logger = logging.getLogger(__name__)
 # Schema de tablas fuente. Cambia aqui o en .env con RAW_SCHEMA=rawantes
 RAW_SCHEMA = os.getenv("RAW_SCHEMA", "raw")
 
+DEFAULT_KEYWORDS_RUES = [
+    "ferreterias",
+    "depositos de materiales",
+    "materiales de construccion",
+    "cemento",
+    "venta de cemento",
+    "distribuidoras de cemento",
+    "hierro y cemento",
+    "concreto",
+    "agregados para construccion",
+    "bloqueras",
+]
+
 
 def cargar_todo_a_staging(
     db,
     limpiar_antes: bool = True,
     municipios: list[dict] | None = None,
+    keywords_rues: list[str] | None = None,
 ) -> dict:
     """
     Carga todas las fuentes raw.* a staging.empresas_unificadas.
@@ -65,8 +79,21 @@ def cargar_todo_a_staging(
     conteos['paginas_amarillas'] = _cargar_paginas_amarillas(db, run_id, municipios_norm)
     conteos['foursquare']        = _cargar_foursquare(db, run_id, municipios_norm)
     conteos['overpass']          = _cargar_overpass(db, run_id, municipios_norm)
-    conteos['rues']              = _cargar_rues(db, run_id, municipios_norm)
+    conteos['rues']              = _cargar_rues(db, run_id, municipios_norm, keywords_rues)
     conteos['serper']            = _cargar_serper(db, run_id, municipios_norm)
+
+    # Excluir empresas en liquidación si la bandera está desactivada
+    incluir_liquidacion = os.getenv("INCLUIR_EN_LIQUIDACION", "true").lower() == "true"
+    if not incluir_liquidacion:
+        result = db.execute(text(r"""
+            DELETE FROM staging.empresas_unificadas
+            WHERE nombre_original ~* 'en\s+liquidaci[oó]n'
+               OR razon_social_original ~* 'en\s+liquidaci[oó]n'
+        """))
+        db.commit()
+        eliminadas = result.rowcount
+        if eliminadas:
+            logger.info(f"  🗑️ Excluidas {eliminadas} empresas en liquidación (INCLUIR_EN_LIQUIDACION=false)")
 
     total = sum(conteos.values())
     logger.info(f"✅ Carga completada. Total en staging: {total}")
@@ -95,15 +122,60 @@ def _where_municipio(municipios_norm: list[str], campo: str = "municipio") -> tu
     """
     Genera la cláusula WHERE para filtrar por municipios.
     Usa unaccent + lower para comparación robusta.
-    
+
     Si la lista está vacía, no filtra (trae todo).
     """
     if not municipios_norm:
         return "", {}
 
-    # Construir lista SQL como constante
     placeholders = ", ".join([f"'{m}'" for m in municipios_norm])
     where = f"AND unaccent(lower(trim({campo}))) = ANY(ARRAY[{placeholders}])"
+    return where, {}
+
+
+def _normalizar_camara_rues_sql(campo: str) -> str:
+    """
+    Genera expresión SQL que normaliza nombres de cámaras RUES:
+      "FLORENCIA PARA EL CAQUETA"     → "florencia"
+      "MEDELLIN PARA ANTIOQUIA"       → "medellin"
+      "SANTA MARTA PARA EL MAGDALENA" → "santa marta"
+      "SUR Y ORIENTE DEL TOLIMA"      → "tolima"
+      "SINCELEJO"                     → "sincelejo"
+
+    Nota: lower() se aplica ANTES de split_part para que el delimitador
+    siempre sea minúscula, independiente de cómo llegue el valor desde RUES.
+    """
+    return f"""unaccent(trim(
+        CASE
+            WHEN {campo} ILIKE '% para %'
+                THEN split_part(lower({campo}), ' para ', 1)
+            WHEN {campo} ILIKE '% del %'
+                THEN split_part(lower({campo}), ' del ', 2)
+            WHEN {campo} ILIKE '% de la %'
+                THEN split_part(lower({campo}), ' de la ', 2)
+            WHEN {campo} ILIKE '% de los %'
+                THEN split_part(lower({campo}), ' de los ', 2)
+            ELSE lower({campo})
+        END
+    ))"""
+
+
+def _where_municipio_rues(municipios_norm: list[str]) -> tuple[str, dict]:
+    """
+    WHERE especial para RUES: normaliza el nombre de cámara/municipio
+    antes de comparar, extrayendo solo la ciudad o departamento principal.
+    """
+    if not municipios_norm:
+        return "", {}
+
+    placeholders = ", ".join([f"'{m}'" for m in municipios_norm])
+    expr_municipio = _normalizar_camara_rues_sql("municipio")
+    expr_camara    = _normalizar_camara_rues_sql("camara")
+
+    where = f"""AND (
+        {expr_municipio} = ANY(ARRAY[{placeholders}])
+        OR {expr_camara}  = ANY(ARRAY[{placeholders}])
+    )"""
     return where, {}
 
 
@@ -245,27 +317,23 @@ def _cargar_overpass(db, run_id: str, municipios_norm: list[str]) -> int:
         return 0
 
 
-def _cargar_rues(db, run_id: str, municipios_norm: list[str]) -> int:
+def _cargar_rues(db, run_id: str, municipios_norm: list[str], keywords_rues: list[str] | None = None) -> int:
     """
     RUES → staging.
-    
-    IMPORTANTE: RUES no se puede filtrar por municipio en la búsqueda original
-    (la API RUES busca por keyword, no por municipio). Por eso:
-    
-    - Si HAY filtro de municipios: filtramos los resultados de RUES por municipio
-      usando los datos de raw.rues_detalle (que sí tienen municipio/ciudad)
-    - Si NO hay filtro: carga todo
-    
-    RUES inactivos:
-    - Se cargan con una penalización en score_origen
-    - Se marca en staging para que el scoring final lo descuente
-    - NO se descartan (pueden ser útiles para cruce y contacto)
+
+    Usa DISTINCT ON (nit) para evitar que la misma empresa aparezca
+    múltiples veces por haber sido encontrada con distintas keywords.
+    Cuando no hay NIT se usa el id de la fila como partición (sin dedup).
+
+    - keywords_rues: lista de keywords a incluir. None = usar DEFAULT_KEYWORDS_RUES.
     """
     try:
-        where_mun, _ = _where_municipio(municipios_norm, "municipio")
+        where_mun, _ = _where_municipio_rues(municipios_norm)
 
-        # Penalización para RUES inactivos: se restan 15 puntos en score final
-        # Los estados inactivos se marcan para tracking
+        kw_list = keywords_rues if keywords_rues else DEFAULT_KEYWORDS_RUES
+        kw_placeholders = ", ".join([f"'{k}'" for k in kw_list])
+        where_kw = f"AND keyword_busqueda = ANY(ARRAY[{kw_placeholders}])"
+
         result = db.execute(text(f"""
             INSERT INTO staging.empresas_unificadas (
                 fuente, raw_table, raw_id, run_id, fecha_extraccion,
@@ -278,7 +346,7 @@ def _cargar_rues(db, run_id: str, municipios_norm: list[str]) -> int:
                 score_origen, aprobado_origen
             )
             SELECT
-                'rues','{RAW_SCHEMA}.rues_detalle', id,   CAST(:run_id AS uuid), fecha_extraccion,
+                'rues', '{RAW_SCHEMA}.rues_detalle', id, CAST(:run_id AS uuid), fecha_extraccion,
                 nit, dv, id_rm, matricula,
                 nombre, razon_social,
                 departamento, municipio,
@@ -287,7 +355,6 @@ def _cargar_rues(db, run_id: str, municipios_norm: list[str]) -> int:
                 coalesce(tel_com_1, telefono),
                 coalesce(email_com, correo_electronico),
                 cod_ciiu_pri, desc_ciiu_pri, keyword_busqueda,
-                -- Score con penalización para inactivos
                 CASE
                     WHEN lower(coalesce(estado, '')) = ANY(ARRAY[
                         'cancelado','disuelto','liquidado','inactivo',
@@ -295,24 +362,33 @@ def _cargar_rues(db, run_id: str, municipios_norm: list[str]) -> int:
                     ]) THEN GREATEST(0, coalesce(score, 50) - 15)
                     ELSE coalesce(score, 50)
                 END,
-                -- Inactivos igual se incluyen (aprobado_origen = true con excepción)
                 CASE
                     WHEN lower(coalesce(estado, '')) = ANY(ARRAY[
                         'cancelado','disuelto','liquidado','liquidada','disuelta'
-                    ]) THEN false  -- inactivo claro
+                    ]) THEN false
                     ELSE true
                 END
-            FROM {RAW_SCHEMA}.rues_detalle
-            WHERE (nombre IS NOT NULL OR razon_social IS NOT NULL)
-            {where_mun}
+            FROM (
+                SELECT DISTINCT ON (COALESCE(nit, id::text)) *
+                FROM {RAW_SCHEMA}.rues_detalle
+                WHERE (nombre IS NOT NULL OR razon_social IS NOT NULL)
+                {where_mun}
+                {where_kw}
+                ORDER BY
+                    COALESCE(nit, id::text),
+                    -- Activos primero
+                    CASE WHEN lower(coalesce(estado, '')) = ANY(ARRAY[
+                        'cancelado','disuelto','liquidado','liquidada','disuelta','inactivo','cancelada','suspendido'
+                    ]) THEN 0 ELSE 1 END DESC,
+                    COALESCE(score, 0) DESC
+            ) sub
             ON CONFLICT DO NOTHING
         """), {"run_id": run_id})
         db.commit()
 
         n = result.rowcount
 
-        # Contar cuántos son inactivos para logging
-        inactivos = db.execute(text(f"""
+        inactivos = db.execute(text("""
             SELECT COUNT(*) FROM staging.empresas_unificadas
             WHERE fuente = 'rues' AND aprobado_origen = false
         """)).scalar() or 0

@@ -19,6 +19,10 @@ const { v4: uuidv4 } = require('uuid');
 const { logger } = require('./logger');
 // Importa el orquestador principal que ejecuta la corrida completa del scraper.
 const { do_scrape } = require('./main');
+// Importa el resolvedor de municipios a códigos de cámara.
+const { resolverMunicipios, TODOS_LOS_CODIGOS } = require('./camaras');
+// Importa la configuración central para acceder a las keywords por defecto.
+const { CONFIG } = require('./config');
 
 // Crea la instancia principal de la aplicación Express.
 const app = express();
@@ -161,12 +165,37 @@ app.post('/scrape/rues', (req, res) => {
     return res.status(409).json({ status: 'ocupado', run_id: estado.run_id });
   }
 
+  const body = req.body || {};
+
+  // Resuelve municipios a códigos de cámara. Si no vienen, usa todos los códigos.
+  let municipios_encontrados = [];
+  let municipios_no_encontrados = [];
+  let codCamaras;
+
+  if (Array.isArray(body.municipios) && body.municipios.length > 0) {
+    // Acepta tanto strings como objetos {municipio, departamento}.
+    const nombres = body.municipios.map(m => (typeof m === 'object' && m !== null) ? m.municipio : m);
+    const resolucion = resolverMunicipios(nombres);
+    municipios_encontrados    = resolucion.encontrados;
+    municipios_no_encontrados = resolucion.no_encontrados;
+    codCamaras = municipios_encontrados.map(m => m.cod_camara);
+  } else {
+    codCamaras = TODOS_LOS_CODIGOS;
+  }
+
+  // Usa keywords del body si vienen; si no, usa las de config.
+  const keywords_usadas = (Array.isArray(body.keywords) && body.keywords.length > 0)
+    ? body.keywords
+    : CONFIG.KEYWORDS_BUSQUEDA;
+
   const run_id = ejecutarBackground(
     {
       details: true,
       extended: true,
       concurrency: 1,
       delayMs: 1200,
+      codCamaras,
+      keywords: keywords_usadas,
     },
     {
       tipo_ejecucion: 'produccion'
@@ -179,6 +208,9 @@ app.post('/scrape/rues', (req, res) => {
     inicio: estado.inicio,
     webhook_n8n: N8N_WEBHOOK_URL,
     mensaje: 'RUES scraper disparado. Consulta /status para ver el progreso.',
+    municipios_encontrados,
+    municipios_no_encontrados,
+    keywords_usadas,
   });
 });
 
@@ -188,14 +220,38 @@ app.post('/scrape/rues/prueba', (req, res) => {
     return res.status(409).json({ status: 'ocupado', run_id: estado.run_id });
   }
 
+  const body = req.body || {};
+
+  // Resuelve municipios a códigos de cámara. Si no vienen, usa todos los códigos.
+  let municipios_encontrados = [];
+  let municipios_no_encontrados = [];
+  let codCamaras;
+
+  if (Array.isArray(body.municipios) && body.municipios.length > 0) {
+    // Acepta tanto strings como objetos {municipio, departamento}.
+    const nombres = body.municipios.map(m => (typeof m === 'object' && m !== null) ? m.municipio : m);
+    const resolucion = resolverMunicipios(nombres);
+    municipios_encontrados    = resolucion.encontrados;
+    municipios_no_encontrados = resolucion.no_encontrados;
+    codCamaras = municipios_encontrados.map(m => m.cod_camara);
+  } else {
+    codCamaras = TODOS_LOS_CODIGOS;
+  }
+
+  // En prueba usa solo 1 keyword del body o la default.
+  const keywords_usadas = (Array.isArray(body.keywords) && body.keywords.length > 0)
+    ? [body.keywords[0]]
+    : ['ferreterias'];
+
   const run_id = ejecutarBackground(
     {
       details: true,
       extended: true,
-      keywords: ['ferreterias'],
+      keywords: keywords_usadas,
       limit: 5,
       concurrency: 1,
       delayMs: 1200,
+      codCamaras,
     },
     {
       tipo_ejecucion: 'prueba'
@@ -207,7 +263,10 @@ app.post('/scrape/rues/prueba', (req, res) => {
     run_id,
     inicio: estado.inicio,
     webhook_n8n: N8N_WEBHOOK_URL,
-    mensaje: 'Prueba RUES iniciada (1 keyword, 5 registros).',
+    mensaje: 'Prueba RUES iniciada (1 keyword, 5 registros por cámara).',
+    municipios_encontrados,
+    municipios_no_encontrados,
+    keywords_usadas,
   });
 });
 

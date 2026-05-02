@@ -232,7 +232,7 @@ def _guardar_resultado_webhook(db, execution_id: str, resultado: dict):
             UPDATE staging.ejecuciones
             SET webhook_enviado = :enviado,
                 webhook_url = :url,
-                webhook_n8n_response = :resp
+                webhook_respuesta = :resp
             WHERE execution_id = :eid
         """), {
             "enviado": resultado.get("enviado", False),

@@ -23,15 +23,16 @@ from datetime import datetime, timedelta
 import httpx
 
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class UbicacionModel(BaseModel):
     municipio: str
     departamento: str
 
 class ScrapOpenstreetmapRequest(BaseModel):
-    """Body REQUERIDO para POST /scrape/overpass"""
-    selected_locations: List[UbicacionModel]
+    """Body opcional para POST /scrape/overpass — ambos campos tienen fallback"""
+    selected_locations: Optional[List[UbicacionModel]] = None
+    keywords: Optional[List[str]] = None
     
 app = FastAPI(title="Argos Scraper — Overpass API")
 
@@ -105,11 +106,9 @@ async def ejecutar_background(run_id: str, opciones: dict, tipo_ejecucion: str):
     try:
         from main import do_scrape
 
-        # ✅ EXTRAER MUNICIPIOS DEL DICT opciones
         municipios = opciones.get("municipios", [])
-        
-        # ✅ PASAR run_id Y municipios
-        metricas = await do_scrape(run_id=run_id, municipios=municipios)
+        keywords = opciones.get("keywords", None)
+        metricas = await do_scrape(run_id=run_id, municipios=municipios, keywords=keywords)
 
         fin = datetime.now().isoformat()
         duracion = None
@@ -227,44 +226,26 @@ def status():
 
 @app.post("/scrape/overpass")
 async def run_scraper(request: ScrapOpenstreetmapRequest):
-    """
-    Inicia scraping Overpass con municipios dinámicos.
-    
-    Body REQUERIDO:
-    {
-        "selected_locations": [
-            {"municipio": "Bogotá", "departamento": "Cundinamarca"},
-            {"municipio": "Medellín", "departamento": "Antioquia"}
-        ]
-    }
-    """
-    
     if estado["scraping_en_curso"]:
         return JSONResponse(
             status_code=409,
             content={"status": "ocupado", "run_id": estado["run_id"]}
         )
-    
-    # ✅ Validar que haya municipios
-    if not request.selected_locations or len(request.selected_locations) == 0:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "detail": "selected_locations es obligatorio y debe tener al menos un municipio"
-            }
-        )
-    
-    # ✅ Convertir a list[dict]
-    municipios = [
-        {
-            "municipio": loc.municipio,
-            "departamento": loc.departamento
-        }
-        for loc in request.selected_locations
-    ]
-    
-    return iniciar({"municipios": municipios}, "produccion")
+
+    # Fallback municipios: si no llegan, usar todos los de Colombia
+    if request.selected_locations:
+        municipios = [
+            {"municipio": loc.municipio, "departamento": loc.departamento}
+            for loc in request.selected_locations
+        ]
+    else:
+        from municipios_colombia import get_municipios
+        municipios = get_municipios()
+
+    # Fallback keywords: si no llegan, main.py usará TEXT_REGEX por defecto
+    keywords = request.keywords if request.keywords else None
+
+    return iniciar({"municipios": municipios, "keywords": keywords}, "produccion")
 
 
 @app.post("/scrape/overpass/prueba")
