@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from config import config
 from db.connection import engine, test_connection
 from db.init_db import wait_for_db, init_database
-from routers import ejecuciones, empresas, staging, respaldos, openrouter_router, admin
+from routers import ejecuciones, empresas, staging, respaldos, openrouter_router, admin, test_endpoints
 
 logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL, logging.INFO),
@@ -79,6 +79,7 @@ app.include_router(staging.router)
 app.include_router(respaldos.router)
 app.include_router(openrouter_router.router)
 app.include_router(admin.router)
+app.include_router(test_endpoints.router)
 
 
 @app.get("/", tags=["Info"])

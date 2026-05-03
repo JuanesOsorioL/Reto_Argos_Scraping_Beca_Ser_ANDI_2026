@@ -5,6 +5,16 @@ para un filtrado rápido, pero el score puede recalcularse en la capa STAGING
 si se ajustan las reglas sin necesidad de volver a hacer scraping.
 """
 
+import unicodedata
+
+
+def _quitar_tildes(text: str) -> str:
+    """Elimina tildes/diacríticos para comparación robusta (ej: 'eléctrico' → 'electrico')."""
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', text)
+        if unicodedata.category(c) != 'Mn'
+    )
+
 
 def calcular_score_argos(nombre: str, categorias: list, keyword_busqueda: str = "") -> tuple:
     """
@@ -18,7 +28,9 @@ def calcular_score_argos(nombre: str, categorias: list, keyword_busqueda: str = 
 
     Umbral de aprobación: score >= 2
     """
-    text_to_search = f"{nombre} {' '.join(categorias)} {keyword_busqueda}".lower()
+    text_to_search = _quitar_tildes(
+        f"{nombre} {' '.join(categorias)} {keyword_busqueda}".lower()
+    )
     score = 0
 
     # ✅ Alta relevancia — productos que Argos vende directamente
@@ -42,12 +54,21 @@ def calcular_score_argos(nombre: str, categorias: list, keyword_busqueda: str = 
 
     # ❌ Descalificadores — negocios irrelevantes para Argos
     palabras_negativas = [
+        # — existentes —
         "cerrajeria", "cerrajero", "pinturas", "pintura",
         "electricos", "electricista", "ornamentacion", "ornamentador",
         "alquiler de equipos", "ropa", "comida", "taxis",
         "salon de belleza", "restaurante", "supermercado",
         "vidrios", "vidrieria", "plomeria", "fontaneria",
-        "refrigeracion", "aires acondicionados"
+        "refrigeracion", "aires acondicionados",
+        # — nuevas (tildes ya eliminadas por _quitar_tildes) —
+        "electro", "electrico", "electrica", "electricas",
+        "automotriz", "automotor",
+        "iluminacion", "luminarias",
+        "gas natural", "gases industriales",
+        "zapateria", "calzado",
+        "camaras de seguridad", "sistema de seguridad",
+        "papeleria", "miscelanea",
     ]
 
     for word in palabras_positivas_alta:

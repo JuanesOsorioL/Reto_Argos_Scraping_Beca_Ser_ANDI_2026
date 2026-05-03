@@ -24,7 +24,7 @@ services:
       SERPER_API_KEY: ${SERPER_API_KEY:-}
 
       # ── Webhook n8n (misma URL que usan los otros servicios) ─────────────
-      N8N_WEBHOOK_URL: https://drapery-saddlebag-retainer.ngrok-free.dev/webhook-test/final
+      N8N_WEBHOOK_URL: https://drapery-saddlebag-retainer.ngrok-free.dev/webhook/limpiezaDatos
       API_BASE_URL: http://ferreterias-api:8009
 
       # ── Pipeline ─────────────────────────────────────────────────────────
@@ -481,9 +481,31 @@ services:
       - automatizacion_net
 
 
+  argos-dashboard:
+    build:
+      context: ./streamlit
+      dockerfile: Dockerfile
+    container_name: argos-dashboard
+    restart: unless-stopped
+    ports:
+      - "8050:8050"   # Streamlit UI
+      - "8010:8010"   # FastAPI control (webhooks de n8n)
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@postgressArgos:5432/postgres
+      STATE_FILE: /app/state/refresh.json
+    volumes:
+      - ./streamlit/data:/app/data         # Excel de clientes Argos
+      - dashboard_state:/app/state         # State file compartido entre FastAPI y Streamlit
+    depends_on:
+      postgressArgos:
+        condition: service_healthy
+    networks:
+      - automatizacion_net
+
 volumes:
   postgres_data:
   n8n_data:
+  dashboard_state:
 
 networks:
   automatizacion_net:

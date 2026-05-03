@@ -109,3 +109,10 @@ AnalisisCoberturaAPI/logs
 AnalisisCoberturaAPI/.env
 AnalisisCoberturaAPI/*.jsonl
 AnalisisCoberturaAPI/docker-compose.yml
+
+streamlit/__pycache__/
+streamlit/venv/
+streamlit/data
+streamlit/.env
+streamlit/*.jsonl
+streamlit/docker-compose.yml
