@@ -109,11 +109,13 @@ services:
     restart: unless-stopped
     environment:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+      NGROK_DOMAIN: ${NGROK_DOMAIN}
       TARGET_HOST: ${TARGET_HOST}
       TARGET_PORT: ${TARGET_PORT}
     volumes:
-    - ./ngrok/generated:/shared
-    - ./ngrok/ngrok-entrypoint.sh:/ngrok-entrypoint.sh:ro
+      - ./ngrok/generated:/shared
+      - ./ngrok/ngrok-entrypoint.sh:/ngrok-entrypoint.sh:ro
+      - ./ngrok/ngrok.yml:/etc/ngrok.yml:ro
     entrypoint: ["/bin/sh", "/ngrok-entrypoint.sh"]
     ports:
       - "4040:4040"
@@ -481,6 +483,19 @@ services:
       - automatizacion_net
 
 
+  cloudflared-dashboard:
+    build:
+      context: ./cloudflared
+      dockerfile: Dockerfile
+    container_name: cloudflared-dashboard
+    restart: unless-stopped
+    volumes:
+      - cloudflare_data:/shared
+    depends_on:
+      - argos-dashboard
+    networks:
+      - automatizacion_net
+
   argos-dashboard:
     build:
       context: ./streamlit
@@ -496,6 +511,7 @@ services:
     volumes:
       - ./streamlit/data:/app/data         # Excel de clientes Argos
       - dashboard_state:/app/state         # State file compartido entre FastAPI y Streamlit
+      - cloudflare_data:/shared            # URL pública del dashboard (escrita por cloudflared)
     depends_on:
       postgressArgos:
         condition: service_healthy
@@ -506,6 +522,7 @@ volumes:
   postgres_data:
   n8n_data:
   dashboard_state:
+  cloudflare_data:
 
 networks:
   automatizacion_net:

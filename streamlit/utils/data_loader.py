@@ -31,7 +31,10 @@ def _get_connection():
     return psycopg2.connect(DATABASE_URL)
 
 
-def cargar_prospectos(municipios: list[str] | None = None) -> pd.DataFrame:
+def cargar_prospectos(
+    municipios: list[str] | None = None,
+    locations: list[dict] | None = None,
+) -> pd.DataFrame:
     """Lee clean.empresas desde PostgreSQL, opcionalmente filtrado por municipios."""
     conn = _get_connection()
     try:
@@ -55,19 +58,40 @@ def cargar_prospectos(municipios: list[str] | None = None) -> pd.DataFrame:
             FROM clean.empresas
             WHERE latitud IS NOT NULL AND longitud IS NOT NULL
         """
-        params: list = []
-
-        if municipios:
-            muns_norm = [normalizar_municipio(m) for m in municipios]
-            placeholders = ','.join(['%s'] * len(muns_norm))
-            query += f"""
-                AND unaccent(upper(trim(municipio))) = ANY(ARRAY[{placeholders}]::text[])
-            """
-            params = muns_norm
-
-        df = pd.read_sql(query, conn, params=params if params else None)
+        df = pd.read_sql(query, conn)
     finally:
         conn.close()
+
+    if locations:
+        # Filtro preciso por municipio + departamento
+        pares = {
+            (normalizar_municipio(l.get('municipio', '')),
+             normalizar_municipio(l.get('departamento', '')))
+            for l in locations
+        }
+        def _match_loc(row) -> bool:
+            import pandas as pd
+            m_raw = row.get('municipio', '')
+            d_raw = row.get('departamento', '')
+            m = normalizar_municipio(str(m_raw) if pd.notna(m_raw) else '')
+            d = normalizar_municipio(str(d_raw) if pd.notna(d_raw) else '')
+            for p_mun, p_dep in pares:
+                if m != p_mun:
+                    continue
+                if not p_dep:
+                    # El filtro no restringe por departamento → aceptar por municipio
+                    return True
+                if d and d == p_dep:
+                    # Filtro y BD coinciden en departamento → aceptar
+                    return True
+                # El filtro pide un departamento específico pero la BD tiene otro
+                # (o NULL) → rechazar este par y seguir buscando
+            return False
+        df = df[df.apply(_match_loc, axis=1)]
+    elif municipios:
+        # Filtro solo por municipio (compatibilidad hacia atrás)
+        muns_norm = {normalizar_municipio(m) for m in municipios}
+        df = df[df['municipio'].apply(normalizar_municipio).isin(muns_norm)]
 
     return df
 
@@ -199,14 +223,17 @@ def contrastar(
     for _, row in df_clientes.iterrows():
         nombre_c = str(row.get('nombre_cuenta', '')).upper()
         if nombre_c not in clientes_con_match:
+            # Usar coordenadas geocodificadas si están disponibles
+            geo_lat = row.get('geo_lat')
+            geo_lon = row.get('geo_lon')
             sin_datos_rows.append({
                 'nombre_comercial':  row.get('nombre_cuenta', ''),
                 'municipio':         row.get('ciudad_argos', ''),
                 'departamento':      row.get('depto_argos', ''),
                 'direccion_principal': row.get('dir_argos', ''),
                 'telefono':          row.get('movil_argos', ''),
-                'latitud':           None,
-                'longitud':          None,
+                'latitud':           geo_lat,
+                'longitud':          geo_lon,
                 'score_calidad':     None,
                 'aprobado_argos':    None,
                 'categoria':         'cliente_argos_sin_datos',

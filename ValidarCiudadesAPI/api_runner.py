@@ -29,6 +29,9 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/free")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+# FASE 1: solo Antioquia habilitado — cambiar a None en Fase 2 para todos los departamentos
+PHASE_1_DEPARTMENT = "Antioquia"
+
 
 # ============================================================================
 # MODELOS PYDANTIC
@@ -40,6 +43,7 @@ class MatchRequest(BaseModel):
     use_ai: bool = Field(default=True, description="Usar OpenRouter si fuzzy no logra corregir")
     return_valid_options: bool = Field(default=False, description="Retornar lista completa")
     search_level: str = Field(default="municipio", description="municipio | departamento")
+    department_filter: Optional[str] = Field(default=PHASE_1_DEPARTMENT, description="Restringe la búsqueda a un departamento. None = todos.")
 
 
 class MatchResult(BaseModel):
@@ -251,13 +255,23 @@ def smart_parse_municipalities(text: str, municipio_index: Dict[str, tuple]) -> 
             # Ignora palabras muy cortas (ruido)
             if len(normalized) >= 3 and normalized not in stopwords:
                 best_match = process.extractOne(normalized, municipios_normalizados, scorer=fuzz.WRatio)
-                
+
                 if best_match and best_match[1] >= 88:  # Score alto
                     best_normalized, score, _ = best_match
                     original_city, _ = municipio_index[best_normalized]
                     found_cities.append(original_city)
                     continue
-    
+
+            # ✅ OPCIÓN 4: Tokens multi-palabra sin coma separadora → buscar palabra por palabra
+            # Maneja casos como "nariño bello" que debían ir separados por coma
+            if " " in subpart:
+                for word in subpart.split():
+                    word_norm = normalize_text(word)
+                    if len(word_norm) >= 4 and word_norm not in stopwords:
+                        if word_norm in municipios_normalizados:
+                            original_city, _ = municipio_index[word_norm]
+                            found_cities.append(original_city)
+
     # Eliminar duplicados preservando orden
     seen = set()
     unique_cities = []
@@ -485,7 +499,7 @@ async def match_cities(payload: MatchRequest) -> MatchResponse:
     - municipio: exactitud máxima (recomendado para scraping)
     - departamento: agrupación de municipios
     """
-    
+
     mode = payload.mode.lower().strip()
     search_level = payload.search_level.lower().strip()
 
@@ -496,6 +510,18 @@ async def match_cities(payload: MatchRequest) -> MatchResponse:
         raise HTTPException(status_code=400, detail="search_level debe ser: municipio | departamento")
 
     municipios_dict, municipio_index = await fetch_api_colombia_data()
+
+    # Filtro de departamento: restringe el pool de candidatos antes del matching
+    if payload.department_filter and search_level == "municipio":
+        dept_norm = normalize_text(payload.department_filter.strip())
+        matching_dept = next(
+            (d for d in municipios_dict if normalize_text(d) == dept_norm),
+            None
+        )
+        if matching_dept:
+            # Reconstruir el índice solo con el depto filtrado evita colisiones de nombres duplicados
+            # entre departamentos (ej: "Rionegro" existe en Antioquia y Santander)
+            municipio_index = build_municipio_index({matching_dept: municipios_dict[matching_dept]})
 
     # ========== BÚSQUEDA POR MUNICIPIO ==========
     if search_level == "municipio":

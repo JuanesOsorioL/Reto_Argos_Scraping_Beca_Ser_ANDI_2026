@@ -1,0 +1,390 @@
+{
+  "name": "1. INICIO ARGOS",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query",
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1776,
+        -960
+      ],
+      "id": "8d12ae31-0867-4a65-be33-0836c0a1486b",
+      "name": "Iniciar flujo",
+      "webhookId": "08fc6722-1a04-4973-8271-2d42e0ef530b",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "nolJua0ZBCSTLFUF",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/nolJua0ZBCSTLFUF",
+          "cachedResultName": "2. PRIMER FLUJO (MENU)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1040,
+        -1152
+      ],
+      "id": "82f51da1-7368-45a3-ab35-6868b696b61c",
+      "name": "LLAMA AL PRIMER FLUJO (MENU)"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$('Iniciar flujo').item.json[\"message\"]?.[\"text\"]?.toLowerCase()?.trim()}}",
+                    "rightValue": "=hola",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9c188492-a046-46a7-aaa2-d3d3fe24c0a6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "hola"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "82b4b81c-9b0e-4809-9d85-96d403e74cbc",
+                    "leftValue": "={{$('Iniciar flujo').item.json[\"callback_query\"]}}",
+                    "rightValue": "todos",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "opciones"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b91fc3e1-a78e-45e4-862e-0cb789109712",
+                    "leftValue": "={{$('Iniciar flujo').item.json[\"message\"]?.[\"text\"]?.toLowerCase()?.trim()}}",
+                    "rightValue": "hola",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "otro"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1376,
+        -976
+      ],
+      "id": "783fcd06-2878-4b0f-91b5-f3976d030cb5",
+      "name": "Tipo de Opcion1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "WjDFUPiRFX4nQDh2",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/WjDFUPiRFX4nQDh2",
+          "cachedResultName": "FLUJO DE MUNICIPIOS"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -928,
+        -768
+      ],
+      "id": "465e12f4-dabb-420d-9c3d-d9d57d40a59d",
+      "name": "LLAMAR A FLUJO DE MUNICIPIOS"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1TOQkO2CiP76uLN2",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1TOQkO2CiP76uLN2",
+          "cachedResultName": "3. OPCIONES"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -848,
+        -976
+      ],
+      "id": "02b26353-be00-4648-84b5-39b0dd7a07f3",
+      "name": "LLAMAR A OPCIONES"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS raw.scraping_runs (\n    chat_id TEXT PRIMARY KEY,\n    payload_json JSONB,\n    status TEXT,\n    run_id TEXT,\n    created_at TIMESTAMP DEFAULT NOW(),\n    updated_at TIMESTAMP DEFAULT NOW()\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1584,
+        -960
+      ],
+      "id": "a87efeab-c8a2-4f0c-a8bb-f315084d869d",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "id",
+              "value": "={{ $('Iniciar flujo').item.json.message.chat.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        -1152
+      ],
+      "id": "345cb97d-62b5-4599-9161-70f7971fc066",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "body",
+              "value": "={{ $('Iniciar flujo').item.json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1088,
+        -944
+      ],
+      "id": "d711ab73-8f03-4286-926b-4175652037ea",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "body",
+              "value": "={{ $('Iniciar flujo').item.json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        -752
+      ],
+      "id": "bd7e9ce1-5943-4289-930d-3e622b96f605",
+      "name": "Edit Fields2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Iniciar flujo": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de Opcion1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Tipo de Opcion1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "LLAMA AL PRIMER FLUJO (MENU)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "LLAMAR A OPCIONES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "LLAMAR A FLUJO DE MUNICIPIOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c07704c5-e4bd-47bc-91cb-a3e2cdd5394c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "KeD5ToccyMUJ4X8I",
+  "tags": []
+}

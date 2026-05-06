@@ -99,8 +99,30 @@ FAMILIAS_OSM = {
 
 # Score Argos
 CIIU_RELEVANTES = {"4752", "4753", "4659", "4690", "2394", "2395"}
-PALABRAS_ALTA   = ["ferreter", "cemento", "concreto", "mortero", "prefabric",
-                   "bloquera", "ladriller", "deposito", "material construccion"]
+
+PALABRAS_ALTA = ["ferreter", "cemento", "concreto", "mortero", "prefabric",
+                 "bloquera", "ladriller", "deposito", "material construccion"]
+
+# Palabras en el nombre que descalifican el negocio (score -10)
+PALABRAS_NEGATIVAS = [
+    "droguer", "farmac", "veterinar", "lubricant", "aceite motor",
+    "cafeter", "cafetero", "panaderi", "carnicer", "ropa", "calzado",
+    "optic", "joyeri", "florist", "lavanderi", "tintoreri",
+    "televis", "celular", "computad",
+    "licor", "licorer", "cigarr", "tabac",
+    "barberi", "salon de bell", "estetica",
+    "taller autom", "llantera",
+]
+
+# Tags OSM que descartan el lugar inmediatamente (antes de calcular score)
+SHOP_TAGS_EXCLUIDOS = {
+    "pharmacy", "chemist", "fuel", "gas_station", "car_repair", "auto_parts",
+    "veterinary", "pet", "supermarket", "convenience", "bakery", "butcher",
+    "clothes", "beauty", "electronics", "mobile_phone", "coffee", "cafe",
+    "florist", "optician", "laundry", "dry_cleaning", "car_wash",
+    "alcohol", "tobacco", "books", "jewelry", "shoes",
+}
+
 ARGOS_THRESHOLD = 2
 
 DB_CONFIG = {
@@ -413,12 +435,21 @@ def calcular_score(nombre: str, familia: str) -> Tuple[int, bool]:
     if familia in ("hardware", "building_materials"):
         score += 5
     elif familia in ("trade_supplies", "doityourself"):
-        score += 2
+        score += 1  # bajado de 2 → requiere palabra positiva en nombre para aprobarse
 
     texto = (nombre or "").lower()
-    for p in PALABRAS_ALTA:
+
+    # Palabras negativas: una sola coincidencia descalifica
+    for p in PALABRAS_NEGATIVAS:
         if p in texto:
-            score += 2
+            score -= 10
+            break
+
+    # Palabras positivas: suman solo si no fue descalificado
+    if score >= 0:
+        for p in PALABRAS_ALTA:
+            if p in texto:
+                score += 2
 
     return score, score >= ARGOS_THRESHOLD
 
@@ -427,6 +458,10 @@ def normalizar_elemento(element: dict, municipio: str, departamento: str, famili
     osm_type = element.get("type")
     osm_id   = element.get("id")
     if not osm_type or osm_id is None:
+        return None
+
+    # Capa 1: descartar por tag shop irrelevante
+    if tags.get("shop") in SHOP_TAGS_EXCLUIDOS:
         return None
 
     lat = element.get("lat") or (element.get("center") or {}).get("lat")
@@ -624,6 +659,8 @@ async def do_scrape(run_id: str, municipios: list = None, keywords: list = None)
                     for element in elementos:
                         registro = normalizar_elemento(element, muni, dept, familia_id, run_id)
                         if not registro:
+                            continue
+                        if not registro["aprobado_argos"]:
                             continue
                         if registro["hash_id"] in procesados:
                             metricas["duplicados"] += 1

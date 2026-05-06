@@ -19,8 +19,8 @@ const { v4: uuidv4 } = require('uuid');
 const { logger } = require('./logger');
 // Importa el orquestador principal que ejecuta la corrida completa del scraper.
 const { do_scrape } = require('./main');
-// Importa el resolvedor de municipios a códigos de cámara.
-const { resolverMunicipios, TODOS_LOS_CODIGOS } = require('./camaras');
+// Importa las utilidades de cámaras de comercio.
+const { agruparPorCamara, TODOS_LOS_CODIGOS } = require('./camaras');
 // Importa la configuración central para acceder a las keywords por defecto.
 const { CONFIG } = require('./config');
 
@@ -167,18 +167,18 @@ app.post('/scrape/rues', (req, res) => {
 
   const body = req.body || {};
 
-  // Resuelve municipios a códigos de cámara. Si no vienen, usa todos los códigos.
-  let municipios_encontrados = [];
-  let municipios_no_encontrados = [];
+  // Construye el plan de búsqueda agrupando municipios por cámara única.
+  let plan_de_busqueda   = [];
+  let no_encontrados     = [];
   let codCamaras;
 
   if (Array.isArray(body.municipios) && body.municipios.length > 0) {
     // Acepta tanto strings como objetos {municipio, departamento}.
-    const nombres = body.municipios.map(m => (typeof m === 'object' && m !== null) ? m.municipio : m);
-    const resolucion = resolverMunicipios(nombres);
-    municipios_encontrados    = resolucion.encontrados;
-    municipios_no_encontrados = resolucion.no_encontrados;
-    codCamaras = municipios_encontrados.map(m => m.cod_camara);
+    const nombres  = body.municipios.map(m => (typeof m === 'object' && m !== null) ? m.municipio : m);
+    const agrupado = agruparPorCamara(nombres);
+    plan_de_busqueda = agrupado.plan;
+    no_encontrados   = agrupado.no_encontrados;
+    codCamaras       = plan_de_busqueda.map(p => p.cod_camara);
   } else {
     codCamaras = TODOS_LOS_CODIGOS;
   }
@@ -208,9 +208,10 @@ app.post('/scrape/rues', (req, res) => {
     inicio: estado.inicio,
     webhook_n8n: N8N_WEBHOOK_URL,
     mensaje: 'RUES scraper disparado. Consulta /status para ver el progreso.',
-    municipios_encontrados,
-    municipios_no_encontrados,
+    plan_de_busqueda,
+    municipios_no_encontrados: no_encontrados,
     keywords_usadas,
+    combinaciones_total: codCamaras.length * keywords_usadas.length,
   });
 });
 
@@ -222,18 +223,18 @@ app.post('/scrape/rues/prueba', (req, res) => {
 
   const body = req.body || {};
 
-  // Resuelve municipios a códigos de cámara. Si no vienen, usa todos los códigos.
-  let municipios_encontrados = [];
-  let municipios_no_encontrados = [];
+  // Construye el plan de búsqueda agrupando municipios por cámara única.
+  let plan_de_busqueda = [];
+  let no_encontrados   = [];
   let codCamaras;
 
   if (Array.isArray(body.municipios) && body.municipios.length > 0) {
     // Acepta tanto strings como objetos {municipio, departamento}.
-    const nombres = body.municipios.map(m => (typeof m === 'object' && m !== null) ? m.municipio : m);
-    const resolucion = resolverMunicipios(nombres);
-    municipios_encontrados    = resolucion.encontrados;
-    municipios_no_encontrados = resolucion.no_encontrados;
-    codCamaras = municipios_encontrados.map(m => m.cod_camara);
+    const nombres  = body.municipios.map(m => (typeof m === 'object' && m !== null) ? m.municipio : m);
+    const agrupado = agruparPorCamara(nombres);
+    plan_de_busqueda = agrupado.plan;
+    no_encontrados   = agrupado.no_encontrados;
+    codCamaras       = plan_de_busqueda.map(p => p.cod_camara);
   } else {
     codCamaras = TODOS_LOS_CODIGOS;
   }
@@ -264,9 +265,10 @@ app.post('/scrape/rues/prueba', (req, res) => {
     inicio: estado.inicio,
     webhook_n8n: N8N_WEBHOOK_URL,
     mensaje: 'Prueba RUES iniciada (1 keyword, 5 registros por cámara).',
-    municipios_encontrados,
-    municipios_no_encontrados,
+    plan_de_busqueda,
+    municipios_no_encontrados: no_encontrados,
     keywords_usadas,
+    combinaciones_total: codCamaras.length * keywords_usadas.length,
   });
 });
 

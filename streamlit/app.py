@@ -45,6 +45,7 @@ def _leer_state() -> dict:
 
 _state = _leer_state()
 _muns_desde_state = _state.get("municipios", [])
+_locs_desde_state = _state.get("selected_locations", [])  # [{municipio, departamento}]
 _state_ts = _state.get("timestamp", "")
 _state_exec = _state.get("execution_id", "")
 _state_empresas = _state.get("empresas_consolidadas", 0)
@@ -57,6 +58,12 @@ _hay_actualizacion = (
     bool(_state_ts)
     and _state_ts != st.session_state.ultimo_state_ts
 )
+
+# Auto-aplicar webhook: si llegó nueva info de n8n, limpiar caché y recargar sin botón
+if _hay_actualizacion:
+    st.session_state.ultimo_state_ts = _state_ts
+    st.cache_data.clear()
+    st.rerun()
 
 # ─────────────────────────────────────────────
 # MUNICIPIOS DESDE URL (?municipios=medellin,bogota)
@@ -103,23 +110,10 @@ with st.sidebar:
     except Exception:
         muns_en_bd = cargar_municipios_default()
 
-    # Banner de actualización pendiente de n8n
-    if _hay_actualizacion:
-        st.warning(
-            f"🔔 **n8n envió nuevos datos**\n\n"
-            f"Pipeline: `{_state_exec}`  \n"
-            f"Empresas: {_state_empresas:,}  \n"
-            f"Municipios: {len(_muns_desde_state)}",
-            icon="🔔",
-        )
-        if st.button("✅ Aplicar actualización", use_container_width=True, type="primary"):
-            st.session_state.ultimo_state_ts = _state_ts
-            st.cache_data.clear()
-            st.rerun()
-    elif _state_ts:
+    if _state_ts:
         st.caption(f"Última actualización n8n: {_state_ts[:19]}")
 
-    if _muns_desde_state and not _hay_actualizacion:
+    if (_muns_desde_state or _locs_desde_state) and not _hay_actualizacion:
         seleccion_inicial = _muns_desde_state
     elif muns_desde_url:
         seleccion_inicial = muns_desde_url
@@ -178,8 +172,12 @@ with st.sidebar:
 # CARGA Y CONTRASTE DE DATOS (cacheado)
 # ─────────────────────────────────────────────
 @st.cache_data(show_spinner="Cargando datos de prospectos...")
-def _cargar_prospectos(muns):
-    return cargar_prospectos(list(muns) if muns else None)
+def _cargar_prospectos(muns, locs=None):
+    if locs:
+        # locs es tuple de tuples (para ser hasheable) → convertir a list[dict]
+        locs_dict = [dict(l) for l in locs]
+        return cargar_prospectos(locations=locs_dict)
+    return cargar_prospectos(municipios=list(muns) if muns else None)
 
 
 @st.cache_data(show_spinner="Cargando clientes de Argos...")
@@ -189,7 +187,12 @@ def _cargar_clientes(path, muns):
 
 # Cargar prospectos
 try:
-    df_pros_raw = _cargar_prospectos(tuple(municipios_sel) if municipios_sel else None)
+    # Usar selected_locations (municipio+departamento) si están disponibles
+    _locs_activas = _locs_desde_state if (_locs_desde_state and not _hay_actualizacion) else []
+    df_pros_raw = _cargar_prospectos(
+        tuple(municipios_sel) if municipios_sel else None,
+        tuple(tuple(l.items()) for l in _locs_activas) if _locs_activas else None,
+    )
 except Exception as e:
     st.error(f"Error conectando a PostgreSQL: {e}")
     st.stop()
@@ -203,14 +206,36 @@ if solo_aprobados:
     mask &= df_pros_raw['aprobado_argos'].fillna(False).astype(bool)
 df_pros_filtrado = df_pros_raw[mask].copy()
 
-# Cargar Excel de Argos
+# Cargar Excel de Argos (todos los clientes, sin filtro de municipio)
 df_sin_datos = pd.DataFrame()
 df_clientes = pd.DataFrame()
 if excel_path:
     try:
-        df_clientes = _cargar_clientes(excel_path, tuple(municipios_sel) if municipios_sel else None)
+        df_clientes = _cargar_clientes(excel_path, None)
     except Exception as e:
         st.warning(f"No se pudo leer el Excel de Argos: {e}")
+
+# ── Geocodificación de clientes Argos ────────────────────────────────────────
+_COL_CODIGO_GEO = 'Código de cliente'
+if not df_clientes.empty:
+    from utils.geocoder import contar_sin_geocodificar, geocodificar_dataframe
+    _pendientes = contar_sin_geocodificar(df_clientes, _COL_CODIGO_GEO)
+
+    if _pendientes > 0:
+        st.sidebar.info(
+            f"📍 {_pendientes} clientes sin ubicación geocodificada.\n\n"
+            f"Primera vez: ~{_pendientes} segundos."
+        )
+        if st.sidebar.button("🌐 Geocodificar clientes", use_container_width=True):
+            _prog_bar = st.sidebar.progress(0, text="Geocodificando...")
+            def _on_progress(actual, total):
+                _prog_bar.progress(actual / total, text=f"Geocodificando {actual}/{total}...")
+            geocodificar_dataframe(df_clientes, _COL_CODIGO_GEO, progress_callback=_on_progress)
+            st.cache_data.clear()
+            st.rerun()
+    else:
+        # Ya geocodificado: cargar coordenadas del caché
+        geocodificar_dataframe(df_clientes, _COL_CODIGO_GEO)
 
 # Contrastar ambas BDs (sin cache — rápido con ~1000 filas)
 if not df_clientes.empty:
