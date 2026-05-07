@@ -1,0 +1,911 @@
+{
+  "name": "2. Scraping GoogleMaps",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ScrapingGoogleMaps",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        128
+      ],
+      "id": "0bc424ec-0641-4739-82ed-031d07f33b44",
+      "name": "Webhook",
+      "webhookId": "10a3aaef-381f-4c31-8dc3-43ce770a9773"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0bb0520b-f4bf-4a16-9c3c-88380b1a497b",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "200",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        -416
+      ],
+      "id": "e8b9cdc7-08ce-4686-bf6f-ac3f2c8275d7",
+      "name": "IF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03936893-af2c-40ce-89a8-ae9666d867dd",
+              "leftValue": "={{ $json.en_curso }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -256,
+        -256
+      ],
+      "id": "24d802df-522c-455c-91f7-f9a24a46aa6b",
+      "name": "IF Status"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=La api de Googlemaps tiene un estado de : {{ $('Api Status Scraping GoogleMaps').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        -176
+      ],
+      "id": "ac2dd107-8d69-48f2-b72f-cddcff05f536",
+      "name": "Other Status Api Rues",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://argos-maps-api:8001/status",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -416,
+        -256
+      ],
+      "id": "ad45fcc1-8e6d-470e-9fb9-180a06e30f50",
+      "name": "Api Status Scraping GoogleMaps"
+    },
+    {
+      "parameters": {
+        "url": "http://argos-maps-api:8001/health",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -832,
+        -416
+      ],
+      "id": "70d6d030-3d1f-48e2-b4cf-02c13c022406",
+      "name": "Api health Scraping GoogleMaps",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://argos-maps-api:8001/scrape/google-maps",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  selected_locations: $json['municipios '],\n  keywords: $json.keywords\n} }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        288,
+        -464
+      ],
+      "id": "c3dd39d0-7865-4fe3-a4f1-3c6e79f58331",
+      "name": "Api Start Scraping GoogleMaps"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=Api de googleMaps esta abajo. se procede a encender",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1408,
+        -176
+      ],
+      "id": "7a6618ea-5b05-427f-986a-f95d74213c46",
+      "name": "Error Api GoogleMaps abajo",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=Estado actual de la api de GoogleMpas es : {{ $('Api Start Scraping GoogleMaps').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        656,
+        -464
+      ],
+      "id": "95d2322c-66b8-428c-937a-b1ee4f0a39bb",
+      "name": "Api GoogleMaps Start",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1440,
+        -416
+      ],
+      "id": "0bb75118-7a6c-4165-aa65-9db0666e523a",
+      "name": "Scraping GoogleMaps"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "LNdWDHAcJU6RaBu0",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/LNdWDHAcJU6RaBu0",
+          "cachedResultName": "7. paginas amarillas"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        128
+      ],
+      "id": "c53a98fd-9530-4824-8433-217050006d39",
+      "name": "llama a paginas amarillas"
+    },
+    {
+      "parameters": {
+        "command": "docker start argos-maps-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1184,
+        -176
+      ],
+      "id": "b0e2e194-5706-4cd5-b6eb-6bcaaeb02d41",
+      "name": "INICIA GOOGLE MAPS"
+    },
+    {
+      "parameters": {
+        "command": "docker stop argos-maps-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        128
+      ],
+      "id": "b349b02e-b684-4ad5-b70e-01eb26b11262",
+      "name": "APAGA API GOOGLE MAPS"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -944,
+        -176
+      ],
+      "id": "2c533e30-6e17-4531-b5e5-65d2838eaa84",
+      "name": "Wait",
+      "webhookId": "6b2ebb28-fb9b-4095-b456-15e70ec34969"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Estado actual de la api de ScrapingGoogleMaps: \nstado: {{ $('Webhook').item.json.body.status }}\nhora inicio: {{ $('Webhook').item.json.body.inicio }}\nhora fin: {{ $('Webhook').item.json.body.fin }}\nduracion: {{ $('Webhook').item.json.body.duracion }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -592,
+        128
+      ],
+      "id": "59b5aa09-7d6a-4f42-a8b3-b837facbb954",
+      "name": "FIN SCRAPING GOOGLE MAPS",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=llego activacion del flujo de api google maps",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1040,
+        -416
+      ],
+      "id": "690f71ad-af42-490a-9240-fdfa8712c9d3",
+      "name": "NOTIFICACION DE LLEGADA A LA API DE GOOGLE MAPS",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ String($json.id) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1232,
+        -416
+      ],
+      "id": "96b7aedb-7f15-42db-bacd-4bbaf9b4fd23",
+      "name": "DATOS",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('DATOS').item.json.chat_id }}",
+            "run_id": "={{ $('Api Start Scraping GoogleMaps').item.json.run_id }}",
+            "status": "Corriendo scraping de google maps"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payload_json",
+              "displayName": "payload_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        464,
+        -464
+      ],
+      "id": "0bc96f93-a0a2-46ee-bd71-039b56a37c50",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "run_id",
+              "value": "={{ $json.body.run_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -768,
+        128
+      ],
+      "id": "d5b2f448-2038-471a-af42-715b61dc10c1",
+      "name": "DATOS RUNID",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "id",
+              "value": "={{ $('DATOS RUNID').item.json.chat_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        128
+      ],
+      "id": "934bc974-79dd-45be-8f50-b46b9a45ff94",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1zBMhwmNeEjxHKDqQhxQjVAZiuxwTHE-eQggz-Ssp75Q/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zBMhwmNeEjxHKDqQhxQjVAZiuxwTHE-eQggz-Ssp75Q/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "key",
+              "lookupValue": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -32,
+        -464
+      ],
+      "id": "35cd164e-4e9e-4318-a8b6-90fdb37be448",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "B5GIYijU45BmFwHQ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "municipios ",
+              "value": "={{ $('DATOS').item.json.payload_json.selected_locations }}",
+              "type": "array"
+            },
+            {
+              "id": "8eb462ae-5fe6-427a-8670-581816d03c63",
+              "name": "keywords",
+              "value": "={{ \n  $json.palabras\n    ? $json.palabras.split(',').map(p => p.trim())\n    : []\n}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        128,
+        -464
+      ],
+      "id": "0495caae-2869-489e-a4fa-66a02516218e",
+      "name": "Edit Fields1"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "argos_n8n:5678",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate",
+            "connection": "keep-alive",
+            "user-agent": "python-httpx/0.28.1",
+            "content-type": "application/json",
+            "content-length": "373"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "evento": "google_maps.finalizado",
+            "status": "ok",
+            "run_id": "5191188b-94b6-4f29-a270-df69404c1d1b",
+            "inicio": "2026-04-24T23:54:52.429319",
+            "fin": "2026-04-25T00:07:30.645618",
+            "duracion": "12m 38s",
+            "ciudades": [
+              {
+                "municipio": "cali",
+                "departamento": "Valle del Cauca"
+              },
+              {
+                "municipio": "pasto",
+                "departamento": "Nariño"
+              }
+            ],
+            "metricas": null,
+            "origen": "api_runner",
+            "tipo_ejecucion": "produccion"
+          },
+          "webhookUrl": "https://drapery-saddlebag-retainer.ngrok-free.dev/webhook/ScrapingGoogleMaps",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "DATOS RUNID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Api Status Scraping GoogleMaps",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Api GoogleMaps abajo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Status": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Other Status Api Rues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Api Status Scraping GoogleMaps": {
+      "main": [
+        [
+          {
+            "node": "IF Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Api health Scraping GoogleMaps": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Api Start Scraping GoogleMaps": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scraping GoogleMaps": {
+      "main": [
+        [
+          {
+            "node": "DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Api GoogleMaps abajo": {
+      "main": [
+        [
+          {
+            "node": "INICIA GOOGLE MAPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA GOOGLE MAPS": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "APAGA API GOOGLE MAPS": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Api Status Scraping GoogleMaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FIN SCRAPING GOOGLE MAPS": {
+      "main": [
+        [
+          {
+            "node": "APAGA API GOOGLE MAPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTIFICACION DE LLEGADA A LA API DE GOOGLE MAPS": {
+      "main": [
+        [
+          {
+            "node": "Api health Scraping GoogleMaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS": {
+      "main": [
+        [
+          {
+            "node": "NOTIFICACION DE LLEGADA A LA API DE GOOGLE MAPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Api GoogleMaps Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS RUNID": {
+      "main": [
+        [
+          {
+            "node": "FIN SCRAPING GOOGLE MAPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "llama a paginas amarillas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Api Start Scraping GoogleMaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c685adc1-5e27-4dae-b514-8d37f1ae093d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "FHnuMTh8FlAshMRn",
+  "tags": []
+}

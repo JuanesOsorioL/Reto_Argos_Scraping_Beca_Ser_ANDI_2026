@@ -1,0 +1,782 @@
+{
+  "name": "8. SERPER",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0bb0520b-f4bf-4a16-9c3c-88380b1a497b",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -496,
+        -64
+      ],
+      "id": "35ccfb0a-a97a-4950-93e7-1ebc4d7db7c7",
+      "name": "IF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03936893-af2c-40ce-89a8-ae9666d867dd",
+              "leftValue": "={{ $json.en_curso }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -64,
+        80
+      ],
+      "id": "0f2f2d36-175d-4a5a-84b4-500b6dd0c2dc",
+      "name": "IF Status"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1184,
+        -64
+      ],
+      "id": "6225725f-6c2a-41f6-9eb8-32d118a58c85",
+      "name": "SERPER"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.id }}",
+        "text": "=llego activacion de SERPER",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -896,
+        -64
+      ],
+      "id": "431e57f2-8507-40c6-92df-6d490283d955",
+      "name": "NOTIFICACION SERPER",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://serper-api:8004/health",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -688,
+        -64
+      ],
+      "id": "35636b6f-b049-4b3b-ba4b-187084ae3a0b",
+      "name": "API HEALTH SERPER",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://serper-api:8004/status",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -240,
+        80
+      ],
+      "id": "29387dcb-85c2-467b-a650-2d006dfb9c08",
+      "name": "API STATUS SERPER"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=La api de SERPER tiene un estado de : {{ $('API STATUS SERPER').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        272
+      ],
+      "id": "406033ed-3531-46c7-b315-da4859912b58",
+      "name": "OTRO ESTADO DE SERPER",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Estado actual de la api de SERPER: {{ $json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        64
+      ],
+      "id": "dc3abbd7-9557-48ed-b9d7-8eb2f940189d",
+      "name": "API SERPER YA INICIO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Estado actual de la api de SERPER: \nstado: {{ $('Webhook').item.json.body.status }}\nid: {{ $('Webhook').item.json.body.run_id }}\nhora inicio: {{ $('Webhook').item.json.body.inicio }}\nhora fin: {{ $('Webhook').item.json.body.fin }}\nduracion: {{ $('Webhook').item.json.body.duracion }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -672,
+        400
+      ],
+      "id": "d0fa9117-4542-4912-aff5-ae1da59acbf0",
+      "name": "NOTIFICACION SERPER FINALIZO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker start serper-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        176
+      ],
+      "id": "f8b0f540-1a19-40b2-9fdc-056a67e921a2",
+      "name": "INICIA SERPER"
+    },
+    {
+      "parameters": {
+        "command": "docker stop serper-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        400
+      ],
+      "id": "6fb8cbd7-2a36-4a5d-80db-b1fe4f95cfa1",
+      "name": "APAGA API SERPER"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        192
+      ],
+      "id": "5382bb30-5b7a-4c76-80e7-fb2aaeaeb525",
+      "name": "Wait",
+      "webhookId": "6b2ebb28-fb9b-4095-b456-15e70ec34969"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('SERPER').item.json.id }}",
+            "status": "Corriendo scraping de serper",
+            "run_id": "={{ $json.run_id }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payload_json",
+              "displayName": "payload_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        352,
+        64
+      ],
+      "id": "143270f5-de14-4dd1-8dc0-db35bb21b56d",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "run_id",
+              "value": "={{ $json.body.run_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -848,
+        400
+      ],
+      "id": "91de86e1-acb7-4375-a19d-5424805e4265",
+      "name": "DATOS RUNID",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "id",
+              "value": "={{ $('DATOS RUNID').item.json.chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "339236ac-7dbb-40a3-aded-39079b20eca2",
+              "name": "foursquare",
+              "value": "=true",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        400
+      ],
+      "id": "d63ee3bb-cc44-4039-9b08-a3c5384d214d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Serper",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1008,
+        400
+      ],
+      "id": "181f331a-9794-4281-a9a1-261e429ebd33",
+      "name": "Webhook",
+      "webhookId": "10a3aaef-381f-4c31-8dc3-43ce770a9773"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('SERPER').item.json.id }}",
+        "text": "=Api de SERPER esta abajo. se procede a iniciar",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -976,
+        160
+      ],
+      "id": "01092f40-836b-4050-94cb-0e714c51d81e",
+      "name": "ERROR API SERPER ABAJO1",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://serper-api:8004/scrape/serper",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  JSON.stringify({\n    selected_locations: $('SERPER').item.json.selected_locations,\n    keywords: $('SERPER').item.json.keywords\n  })\n}}\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        160,
+        64
+      ],
+      "id": "fe1f010a-7055-4ca0-99e0-b5ede013759c",
+      "name": "API INICIA SERPER1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "OaKCc5lMCqZjKMki",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OaKCc5lMCqZjKMki",
+          "cachedResultName": "ANALISIS DE COBERTURA"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        400
+      ],
+      "id": "6a12660c-c667-4970-8bac-607b0c40b7cf",
+      "name": "LLAMA A COBERTURA"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "argos_n8n:5678",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate",
+            "connection": "keep-alive",
+            "user-agent": "python-httpx/0.25.0",
+            "content-type": "application/json",
+            "content-length": "754"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "evento": "serper.finalizado",
+            "status": "ok",
+            "run_id": "b8fa5e16-1cf8-490c-8543-8115972a5872",
+            "inicio": "2026-05-01T02:17:30.888549",
+            "fin": "2026-05-01T02:17:31.472311",
+            "duracion": "0m 0s",
+            "metricas": {
+              "run_id": "45e55813-6259-4d9b-b796-cfc0ac966611",
+              "inicio": "2026-05-01T02:17:31.407239+00:00",
+              "fin": "2026-05-01T02:17:31.471498+00:00",
+              "duracion": "0m 0s",
+              "queries_total": 2,
+              "queries_hechas": 0,
+              "queries_saltadas": 2,
+              "registros_nuevos": 0,
+              "duplicados": 0,
+              "aprobados_argos": 0,
+              "errores_totales": 0,
+              "ultima_query": "ferreterias en Cali, Colombia",
+              "page": 1,
+              "json_backup_habilitado": false,
+              "raw_json_file": null,
+              "flat_json_file": null,
+              "progress_file": "serper_progress.json"
+            },
+            "origen": "api_runner",
+            "tipo_ejecucion": "produccion"
+          },
+          "webhookUrl": "https://drapery-saddlebag-retainer.ngrok-free.dev/webhook/Serper",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "API STATUS SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ERROR API SERPER ABAJO1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Status": {
+      "main": [
+        [
+          {
+            "node": "API INICIA SERPER1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OTRO ESTADO DE SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SERPER": {
+      "main": [
+        [
+          {
+            "node": "NOTIFICACION SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTIFICACION SERPER": {
+      "main": [
+        [
+          {
+            "node": "API HEALTH SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API HEALTH SERPER": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API STATUS SERPER": {
+      "main": [
+        [
+          {
+            "node": "IF Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTIFICACION SERPER FINALIZO": {
+      "main": [
+        [
+          {
+            "node": "APAGA API SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "APAGA API SERPER": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA SERPER": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "API STATUS SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "API SERPER YA INICIO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS RUNID": {
+      "main": [
+        [
+          {
+            "node": "NOTIFICACION SERPER FINALIZO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "LLAMA A COBERTURA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "DATOS RUNID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ERROR API SERPER ABAJO1": {
+      "main": [
+        [
+          {
+            "node": "INICIA SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API INICIA SERPER1": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "85c5ed03-c285-4fe6-9d5f-6f1dbf353cdd",
+  "meta": {
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "O3KsB70X7ABZZAUJ",
+  "tags": []
+}

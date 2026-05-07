@@ -116,3 +116,5 @@ streamlit/data
 streamlit/.env
 streamlit/*.jsonl
 streamlit/docker-compose.yml
+
+notas clase ciclo 4

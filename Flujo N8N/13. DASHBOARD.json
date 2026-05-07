@@ -1,0 +1,462 @@
+{
+  "name": "13. DASHBOARD",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ String($json.id) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -288,
+        -128
+      ],
+      "id": "55820197-672e-49c0-9d5f-e2966b447cb6",
+      "name": "DATOS",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=📡 Activación recibida\nSe ha detectado la solicitud para ejecutar la Dashboard\n⚙️ Iniciando proceso...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        -128
+      ],
+      "id": "25e8caef-589d-4e72-8c7f-41c7ff8406dc",
+      "name": "NOTIFICACION API DASHBOARD",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0bb0520b-f4bf-4a16-9c3c-88380b1a497b",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "83503f39-82c0-455f-8d03-7ed2ed8ab5fc",
+      "name": "IF"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        112
+      ],
+      "id": "d4e0364e-ef28-4870-85ae-ee596ea0c746",
+      "name": "Wait",
+      "webhookId": "6b2ebb28-fb9b-4095-b456-15e70ec34969"
+    },
+    {
+      "parameters": {
+        "url": "http://argos-dashboard:8010/health",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        48,
+        -128
+      ],
+      "id": "eabfb217-e101-4084-a291-af499f0bf3f2",
+      "name": "API HEALTH DASHBOARD",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=🌍 Procesamiento en curso\nLa API de dashboard ha sido iniciada correctamente.\n⏳ Ejecutando, por favor espera...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -272,
+        112
+      ],
+      "id": "1961c847-dbe1-4ab8-82f9-1577dbfe102d",
+      "name": "ERROR API DASHBOARD ABAJO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker start argos-dashboard"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        112
+      ],
+      "id": "316c592e-703c-4838-9f24-069a3bb499de",
+      "name": "INICIA API DASHBOARD"
+    },
+    {
+      "parameters": {
+        "url": "http://argos-dashboard:8010/status",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        512,
+        0
+      ],
+      "id": "e99cdc69-589a-49a2-926b-f33c8336ffb4",
+      "name": "API STATUS DASHBOARD"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03936893-af2c-40ce-89a8-ae9666d867dd",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "running",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        784,
+        0
+      ],
+      "id": "7b81746c-3f35-47e4-9f24-6f6f14889343",
+      "name": "IF Status"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=se finalizo el proceso puedes verificar el dashboard en el siguiente link:\n\n{{ $json.dashboard_url }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        -400
+      ],
+      "id": "73a4c8a4-d0e9-4960-8f2f-8fe23337bcc0",
+      "name": "API FOURQUAREYA INICIO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=📡 Estado del servicio Foursquare\n🧩 Estado interno: {{ $('API STATUS LIMPIEZA').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        112
+      ],
+      "id": "eca03b91-7dc4-4617-8c7c-e53f336a9c30",
+      "name": "OTRO ESTADO DE FOURQUARE",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://argos-dashboard:8010/webhook/refresh",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"selected_locations\": {{ JSON.stringify(\n  $('DATOS').item.json.payload_json.selected_locations.map(m => ({\n    municipio: m.municipio,\n    departamento: m.departamento\n  }))\n) }},\n  \"execution_id\": \"{{ $('API_DASHBOARD').item.json.execution_id }}\",\n  \"empresas_consolidadas\": {{ $('API_DASHBOARD').item.json.empresas_consolidadas }}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "79da611e-be96-4119-9bdc-fb6cff78b248",
+      "name": "API INICIA DASHBOARD"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        -128
+      ],
+      "id": "8c21dcd0-2c15-4518-9b52-41ae5f586096",
+      "name": "API_DASHBOARD"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "DATOS": {
+      "main": [
+        [
+          {
+            "node": "NOTIFICACION API DASHBOARD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTIFICACION API DASHBOARD": {
+      "main": [
+        [
+          {
+            "node": "API HEALTH DASHBOARD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "API STATUS DASHBOARD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ERROR API DASHBOARD ABAJO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "API STATUS DASHBOARD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API HEALTH DASHBOARD": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ERROR API DASHBOARD ABAJO": {
+      "main": [
+        [
+          {
+            "node": "INICIA API DASHBOARD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA API DASHBOARD": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Status": {
+      "main": [
+        [
+          {
+            "node": "API INICIA DASHBOARD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OTRO ESTADO DE FOURQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API STATUS DASHBOARD": {
+      "main": [
+        [
+          {
+            "node": "IF Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API INICIA DASHBOARD": {
+      "main": [
+        [
+          {
+            "node": "API FOURQUAREYA INICIO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API_DASHBOARD": {
+      "main": [
+        [
+          {
+            "node": "DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5f1fe011-16ce-490e-8efd-04689809611a",
+  "meta": {
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "esgOY9djfZX1QpGS",
+  "tags": []
+}

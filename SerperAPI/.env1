@@ -1,0 +1,52 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# .env — Configuración Serper API con pausa automática y webhooks
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── BASE DE DATOS ─────────────────────────────────────────────────────────────
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=1234
+
+# ─── SERPER API KEY ────────────────────────────────────────────────────────────
+# Tu API key gratuita de Serper con ~2,491 queries disponibles
+SERPER_API_KEY=
+
+# ─── CONTROL DE GUARDADO LOCAL ─────────────────────────────────────────────────
+# Si true: guarda serper_raw_responses.json y serper_flat_results.json
+# Si false: NO guarda nada en JSON local, solo en Postgres
+SAVE_JSON_BACKUP=false
+
+# ─── WEBHOOK N8N ───────────────────────────────────────────────────────────────
+# URL donde n8n recibirá notificaciones cuando se pause por tokens o termine
+# Ejemplo local: http://localhost:5678/webhook/serper-callback
+# Ejemplo Docker: http://n8n:5678/webhook/serper-callback
+N8N_WEBHOOK_URL=http://localhost:5678/webhook/serper-callback
+
+# ─── PUERTO API ────────────────────────────────────────────────────────────────
+# Puerto donde corre la API FastAPI (endpoints /scrape, /status, /progress, etc)
+PORT=8004
+
+# ─── CONTROL DE PAUSA AUTOMÁTICA POR TOKENS ────────────────────────────────────
+# Si true: cuando detecte 429 (rate limit), pausa automáticamente, espera,
+#          y reintentan. Si false: lanza excepción y termina.
+AUTO_RESUME_ON_RATE_LIMIT=true
+
+# Segundos de espera cuando recibe 429 (Serper rate limit)
+# Recomendado: 900 (15 minutos) para tokens gratis
+# Serper rate limit típico: 100 requests/min para tier gratuito
+RATE_LIMIT_SLEEP_SECONDS=900
+
+# Máximo número de 429s consecutivos antes de darse por vencido
+# Si alcanza este número, pausa permanentemente hasta manual resume
+MAX_CONSECUTIVE_RATE_LIMITS=20
+
+# ─── GUARDADO DE PROGRESO ──────────────────────────────────────────────────────
+# Si true: guarda progreso en serper_progress.json después de cada query
+# Permite reanudar exactamente donde quedó si se cae la app
+SAVE_PROGRESS_FILE=true
+
+# ─── NOMBRE DEL ARCHIVO DE PROGRESO ────────────────────────────────────────────
+# Archivo donde se guarda el estado actual (queryactual, errores, métricas)
+PROGRESS_FILE=

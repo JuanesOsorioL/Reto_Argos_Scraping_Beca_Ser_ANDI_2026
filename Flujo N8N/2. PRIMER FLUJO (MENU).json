@@ -1,0 +1,460 @@
+{
+  "name": "2. PRIMER FLUJO (MENU)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1104,
+        -96
+      ],
+      "id": "37ae35f6-1eb0-4dff-b6df-02cc99adff78",
+      "name": "PRIMER FLUJO (MENU)"
+    },
+    {
+      "parameters": {
+        "url": "http://validar-ciudades-api:8003/health",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -176,
+        -112
+      ],
+      "id": "960162e7-c2ac-407a-94b0-e489f4e44a3d",
+      "name": "menu principal",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "297b4cf9-677b-42bf-a96a-4fef679d5642",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        16,
+        -112
+      ],
+      "id": "5136516e-a205-4cd4-9db6-cf859760d8b2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "command": "docker start validar-ciudades-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        272,
+        -16
+      ],
+      "id": "350d483a-662a-4152-8220-5891db006cc2",
+      "name": "iniciar api de ciudades"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "Bienvenido",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -368,
+        -112
+      ],
+      "id": "509408b7-3b80-4497-ab46-06e4ba65f84f",
+      "name": "Saludo",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('PRIMER FLUJO (MENU)').item.json.id }}",
+        "text": "¿Como deseas realizar la consulta por municipio?",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Buscar por todas las ciudades",
+                    "additionalFields": {
+                      "callback_data": "todos"
+                    }
+                  },
+                  {
+                    "text": "Ingresar una ciudad",
+                    "additionalFields": {
+                      "callback_data": "uno"
+                    }
+                  },
+                  {
+                    "text": "Ingresar algunas ciudades",
+                    "additionalFields": {
+                      "callback_data": "algunos"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        -128
+      ],
+      "id": "4d8e0cd9-b76b-401f-9308-196d70a35a66",
+      "name": "MENU DE OPCIONES (TODOS,UNO,ALGUNO)",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a27384ef-d201-426b-b27d-e812b349b002",
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -752,
+        -96
+      ],
+      "id": "ac7d1489-571a-49de-b7ca-dc85253d714a",
+      "name": "SI EXISTE"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ $json.id.toString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -928,
+        -96
+      ],
+      "id": "439a06cf-ee16-4dd1-a679-a05bb27bd1a1",
+      "name": "DATOS",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('PRIMER FLUJO (MENU)').item.json.message.chat.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_json",
+              "displayName": "payload_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -560,
+        32
+      ],
+      "id": "5c19808f-83c1-46d5-9781-c6ca095d4e9a",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "menu principal": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "MENU DE OPCIONES (TODOS,UNO,ALGUNO)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "iniciar api de ciudades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "iniciar api de ciudades": {
+      "main": [
+        [
+          {
+            "node": "MENU DE OPCIONES (TODOS,UNO,ALGUNO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Saludo": {
+      "main": [
+        [
+          {
+            "node": "menu principal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PRIMER FLUJO (MENU)": {
+      "main": [
+        [
+          {
+            "node": "DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MENU DE OPCIONES (TODOS,UNO,ALGUNO)": {
+      "main": [
+        []
+      ]
+    },
+    "SI EXISTE": {
+      "main": [
+        [
+          {
+            "node": "Saludo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS": {
+      "main": [
+        [
+          {
+            "node": "SI EXISTE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Saludo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1734a686-37c5-44ea-a07f-456fe7988299",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "nolJua0ZBCSTLFUF",
+  "tags": []
+}

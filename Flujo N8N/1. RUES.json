@@ -1,0 +1,917 @@
+{
+  "name": "1. RUES",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "http://rues-api:8006/health",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -640,
+        160
+      ],
+      "id": "8790822f-b2a6-488d-a824-a12cffe7a0c4",
+      "name": "Api Rues health",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('RUES').item.json.id }}",
+        "text": "=Api de RUES esta abajo. Se procede a subir la api",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -960,
+        400
+      ],
+      "id": "c312d671-129a-4af9-919b-19573c8115e5",
+      "name": "Error Api Rues abajo",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://rues-api:8006/status",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -240,
+        256
+      ],
+      "id": "6d9488b3-1d9c-433f-9348-3f2c5c215efe",
+      "name": "Api Status Scraping RUES"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0bb0520b-f4bf-4a16-9c3c-88380b1a497b",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "200",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -496,
+        160
+      ],
+      "id": "697998f6-1cc4-42f8-88d3-2b31cb27ccf2",
+      "name": "IF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03936893-af2c-40ce-89a8-ae9666d867dd",
+              "leftValue": "={{ $json.en_curso }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -80,
+        256
+      ],
+      "id": "fc56cb22-6412-45a7-9a5d-c98e88b3b323",
+      "name": "IF Status"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('RUES').item.json.id }}",
+        "text": "=Estado actual de la api RUES :{{ $('Api Status Scraping RUES').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        304
+      ],
+      "id": "afd6c2c5-ac0a-42ae-beb7-0243780fc3a1",
+      "name": "Other Status Api Rues",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://rues-api:8006/scrape/rues",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  municipios: $json['municipios '],\n  keywords: $json.keywords\n} }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        112
+      ],
+      "id": "3f096bd5-5aa1-40ca-9e99-9c7687f4dbc2",
+      "name": "Api Start Scraping RUES"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('RUES').item.json.id }}",
+        "text": "=Estado actual de la api de RUES: {{ $('Api Start Scraping RUES').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        112
+      ],
+      "id": "4a0543d9-7449-426b-abd3-6fd8837ffb46",
+      "name": "Api Rues Start",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Rues",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -912,
+        640
+      ],
+      "id": "4416cffe-323e-4fd7-97cf-1c37b8618e90",
+      "name": "Webhook",
+      "webhookId": "10a3aaef-381f-4c31-8dc3-43ce770a9773"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Estado actual de la api de RUES:\nstado: {{ $('Webhook').item.json.body.status }}\nhora inicio: {{ $('Webhook').item.json.body.inicio }}\nhora fin: {{ $('Webhook').item.json.body.fin }}\nduracion: {{ $('Webhook').item.json.body.duracion }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        624
+      ],
+      "id": "bdb26e4c-c524-422e-b521-9553ca4d7216",
+      "name": "Fin del scraping de RUES",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1168,
+        160
+      ],
+      "id": "a124fe2b-7ba6-404d-8216-4dc6aa777a87",
+      "name": "RUES"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "FHnuMTh8FlAshMRn",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/FHnuMTh8FlAshMRn",
+          "cachedResultName": "2. Scraping GoogleMaps"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        608
+      ],
+      "id": "22a7c7f6-f254-40b6-9175-6701c768e6cc",
+      "name": "llama a Scraping GoogleMaps"
+    },
+    {
+      "parameters": {
+        "command": "docker start rues-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        400
+      ],
+      "id": "ece10718-8e82-4b0a-aef7-b90cb2199164",
+      "name": "inicia Rues api"
+    },
+    {
+      "parameters": {
+        "command": "docker stop rues-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        624
+      ],
+      "id": "dbcd1739-2283-47be-96fa-78515ef3ea57",
+      "name": "APAGAAPI RUES"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -544,
+        400
+      ],
+      "id": "50138703-eddb-4f2e-943f-6630b3c936e7",
+      "name": "Wait",
+      "webhookId": "6b2ebb28-fb9b-4095-b456-15e70ec34969"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "llego activacion del flujo de la api de RUES",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        160
+      ],
+      "id": "06a56c45-7217-46fe-9ddb-381a094bad2a",
+      "name": "INICIA SCRAPING RUES",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "id",
+              "value": "={{ $('Fin del scraping de RUES').item.json.result.chat.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        624
+      ],
+      "id": "0f8dcbba-55a5-461e-bad9-301fe9180604",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('RUES').item.json.id }}",
+            "run_id": "={{ $('Api Start Scraping RUES').item.json.run_id }}",
+            "status": "Corriendo scraping de serper"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payload_json",
+              "displayName": "payload_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        752,
+        112
+      ],
+      "id": "bfb21e05-04a1-459e-8f96-8f7c4f755133",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "run_id",
+              "value": "={{ $json.body.run_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -704,
+        640
+      ],
+      "id": "f2f22b53-ec87-4827-8e89-9eb37b9d2234",
+      "name": "DATOS RUNID",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ String($json.id) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1024,
+        160
+      ],
+      "id": "54b0d12f-d0be-4587-8777-d0dc3dca0b9c",
+      "name": "DATOS",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1zBMhwmNeEjxHKDqQhxQjVAZiuxwTHE-eQggz-Ssp75Q/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zBMhwmNeEjxHKDqQhxQjVAZiuxwTHE-eQggz-Ssp75Q/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "key",
+              "lookupValue": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        160,
+        112
+      ],
+      "id": "9714704e-6cb4-477b-bf21-81403431a487",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "B5GIYijU45BmFwHQ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "municipios ",
+              "value": "={{ $('DATOS').item.json.payload_json.selected_locations }}",
+              "type": "array"
+            },
+            {
+              "id": "8eb462ae-5fe6-427a-8670-581816d03c63",
+              "name": "keywords",
+              "value": "={{ \n  $json.palabras\n    ? $json.palabras.split(',').map(p => p.trim())\n    : []\n}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        112
+      ],
+      "id": "bab231ca-408f-4eef-8cd7-ca4d98ef9904",
+      "name": "Edit Fields1"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "user-agent": "axios/1.14.0",
+            "content-length": "616",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "host": "argos_n8n:5678",
+            "connection": "keep-alive"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "evento": "rues.finalizado",
+            "status": "ok",
+            "run_id": "0858eb0e-76ba-47a5-9b49-6f97dc0f6c0c",
+            "inicio": "2026-04-23T03:01:22.931Z",
+            "fin": "2026-04-23T03:01:25.924Z",
+            "duracion": "0m 3s",
+            "metricas": {
+              "run_id": "da85c44f-395d-4fe8-9510-b268e93a23a3",
+              "inicio": "2026-04-23T03:01:22.932Z",
+              "fin": "2026-04-23T03:01:25.923Z",
+              "duracion": "0m 3s",
+              "keywords_total": 1,
+              "keywords_procesadas": 1,
+              "busqueda_total": 1,
+              "detalle_ok": 0,
+              "detalle_error": 0,
+              "detalle_saltado": 0,
+              "facultades_ok": 0,
+              "facultades_error": 0,
+              "propietarios_ok": 0,
+              "propietarios_error": 0,
+              "aprobados_argos": 0,
+              "errores_totales": 0
+            },
+            "origen": "api_runner",
+            "tipo_ejecucion": "produccion"
+          },
+          "webhookUrl": "https://drapery-saddlebag-retainer.ngrok-free.dev/webhook/Rues",
+          "executionMode": "production"
+        }
+      }
+    ],
+  },
+  "connections": {
+    "Api Rues health": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Api Status Scraping RUES": {
+      "main": [
+        [
+          {
+            "node": "IF Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Api Status Scraping RUES",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Api Rues abajo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Status": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Other Status Api Rues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Api Start Scraping RUES": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "DATOS RUNID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fin del scraping de RUES": {
+      "main": [
+        [
+          {
+            "node": "APAGAAPI RUES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RUES": {
+      "main": [
+        [
+          {
+            "node": "DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Api Rues abajo": {
+      "main": [
+        [
+          {
+            "node": "inicia Rues api",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "inicia Rues api": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "APAGAAPI RUES": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Api Status Scraping RUES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA SCRAPING RUES": {
+      "main": [
+        [
+          {
+            "node": "Api Rues health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "llama a Scraping GoogleMaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Api Rues Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS RUNID": {
+      "main": [
+        [
+          {
+            "node": "Fin del scraping de RUES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS": {
+      "main": [
+        [
+          {
+            "node": "INICIA SCRAPING RUES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Api Start Scraping RUES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "febf1a3c-e9c5-4351-a0ed-1abfbc7815e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "1ZkunM1rHSNQcY9H",
+  "tags": []
+}

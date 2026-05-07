@@ -1,0 +1,512 @@
+{
+  "name": "3. OPCIONES",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "OPCIONES",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        176,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.body.callback_query.from.id }}",
+        "text": "Perfecto ingres algunas opciones ",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        688
+      ],
+      "id": "af44fcc7-5d7f-4338-b2f1-11680d95fa81",
+      "name": "Send a text message1",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json[\"body\"]?.[\"callback_query\"]?.[\"data\"]}}",
+                    "rightValue": "uno",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9c188492-a046-46a7-aaa2-d3d3fe24c0a6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Uno"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "82b4b81c-9b0e-4809-9d85-96d403e74cbc",
+                    "leftValue": "={{$json[\"body\"]?.[\"callback_query\"]?.[\"data\"]}}",
+                    "rightValue": "todos",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Todos"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6bc66a75-8a6b-4d82-9b2d-83fd1928726c",
+                    "leftValue": "={{$json[\"body\"]?.[\"callback_query\"]?.[\"data\"]}}",
+                    "rightValue": "algunos",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Algunos"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        432
+      ],
+      "id": "d75fa449-a08d-4ae9-8ca2-4ff1ca892ca3",
+      "name": "Tipo de Opcion"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.body.callback_query.from.id }}",
+        "text": "Perfecto, estamos cargando todos los municipios.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        448
+      ],
+      "id": "cc865efb-5997-4fbf-ab85-d7323c9d9c83",
+      "name": "cargando todas",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://validar-ciudades-api:8003/municipalities",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        992,
+        272
+      ],
+      "id": "8f91adb1-56b4-4e1b-a651-315af2c00184",
+      "name": "TODOS LOS MUNICIPIOS",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.body.callback_query.from.id }}",
+        "text": "Perfecto, ingresa la  ciudad.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        208
+      ],
+      "id": "720ff70b-8a95-4621-ae34-07ead3a1abd5",
+      "name": "una ciudad",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b4143d0d-c3f3-4116-99a7-2da90ffcaf63",
+              "name": "id",
+              "value": "={{ $('cargando todas').item.json.result.chat.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        512
+      ],
+      "id": "3318e836-8755-49ef-b8dc-049c855b3651",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "command": "docker stop validar-ciudades-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        944,
+        512
+      ],
+      "id": "07c9e1d7-0dfc-410f-9c32-81195419072c",
+      "name": "apagar api de validacion de ciudades"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "payload_json": "={{ { selected_locations: $json.municipalities } }}",
+            "chat_id": "={{ $('cargando todas').item.json.result.chat.id }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payload_json",
+              "displayName": "payload_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1408,
+        288
+      ],
+      "id": "d071ef42-fb97-4a35-9bcd-c49253ce6cda",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "48eb972e-417a-49d4-a5d6-a8f74a80694c",
+              "leftValue": "={{ $json.error.name }}",
+              "rightValue": "Error",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        272
+      ],
+      "id": "eeb2ae44-471d-456d-a03a-ae87c1e30648",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1ZkunM1rHSNQcY9H",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1ZkunM1rHSNQcY9H",
+          "cachedResultName": "1. RUES"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        512
+      ],
+      "id": "8bf55ef5-72d9-4aba-a392-e8128e457e36",
+      "name": "LLAMADO A RUES1",
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OPCIONES": {
+      "main": [
+        [
+          {
+            "node": "Tipo de Opcion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de Opcion": {
+      "main": [
+        [
+          {
+            "node": "una ciudad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "cargando todas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cargando todas": {
+      "main": [
+        [
+          {
+            "node": "TODOS LOS MUNICIPIOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TODOS LOS MUNICIPIOS": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "una ciudad": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "LLAMADO A RUES1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "apagar api de validacion de ciudades": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "apagar api de validacion de ciudades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "TODOS LOS MUNICIPIOS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3d9a93e8-fdc7-4dbf-a2e8-0bf42e36f385",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "1TOQkO2CiP76uLN2",
+  "tags": []
+}

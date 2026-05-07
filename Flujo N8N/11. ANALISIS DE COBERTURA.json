@@ -1,0 +1,880 @@
+{
+  "name": "11. ANALISIS DE COBERTURA",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0bb0520b-f4bf-4a16-9c3c-88380b1a497b",
+              "leftValue": "={{ $json.error.name }}",
+              "rightValue": "Error",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        -480
+      ],
+      "id": "aad146fa-d409-484f-a0d3-7af4338a02cb",
+      "name": "IF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03936893-af2c-40ce-89a8-ae9666d867dd",
+              "leftValue": "={{ $json.servicio }}",
+              "rightValue": "analisis-cobertura-api",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        -112
+      ],
+      "id": "107db97f-ad91-47ce-863f-c17f1c644a1d",
+      "name": "IF Status"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        -336
+      ],
+      "id": "7b8c618e-54ea-47de-bda0-3e1f0fa7b4a8",
+      "name": "Wait",
+      "webhookId": "6b2ebb28-fb9b-4095-b456-15e70ec34969"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ String($json.id) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -224,
+        -480
+      ],
+      "id": "669011a2-b820-40d0-84c5-6f59986e7002",
+      "name": "DATOS",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -432,
+        -480
+      ],
+      "id": "e5ba91ca-f6d4-4855-b4aa-25d6a2634b7a",
+      "name": "ANALISIS DE COBERTURA"
+    },
+    {
+      "parameters": {
+        "url": "http://analisis-cobertura-api:8008/health",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        128,
+        -480
+      ],
+      "id": "7a24dd7e-77d9-495d-9966-b143028614d7",
+      "name": "API HEALTH COBERTURA",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=Api de COBERTURA esta abajo. se procede a iniciar",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        -224
+      ],
+      "id": "e2ddfbd1-0735-45f7-a83d-86ad819093c4",
+      "name": "ERROR API COBERTURA ABAJO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://analisis-cobertura-api:8008/status",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        736,
+        -336
+      ],
+      "id": "3f646538-fb83-40a9-a2e6-99a963001c87",
+      "name": "API STATUS COBERTURA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://analisis-cobertura-api:8008/analizar/cobertura",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  municipios:$json['municipios '],\n  keywords: $json[\"keywords\"],\n  ignorar_umbral: true,\nsolo_grandes_ciudades: true\n}) }}\n\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1200,
+        -48
+      ],
+      "id": "f7102587-ead6-48e7-8a2e-8453df507040",
+      "name": "API INICIA COBERTURA"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=La api de COBERTURA tiene un estado de : {{ $('API STATUS COBERTURA').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        272
+      ],
+      "id": "e21c35c0-b9a8-41a9-8c72-12f78d31a97b",
+      "name": "OTRO ESTADO DE COBERTURA",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=llego activacion de ANALISIS DE COBERTURA",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        -480
+      ],
+      "id": "adec6591-66c3-44c1-a8f7-151042fae407",
+      "name": "NOTIFICACION ANALISIS DE COBERTURA",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "id",
+              "value": "={{ $('API COBERTURA YA INICIO').item.json.result.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "184e269d-5eda-44bc-900d-e87ef1743169",
+              "name": "keywords",
+              "value": "={{ $('API INICIA COBERTURA').item.json.keywords }}",
+              "type": "array"
+            },
+            {
+              "id": "b0414117-0a35-4476-b535-c61ff3b97718",
+              "name": "selected_locations",
+              "value": "={{ $('API INICIA COBERTURA').item.json.municipios_bajo_cobertura }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1680,
+        -48
+      ],
+      "id": "dcbcf69d-d2e5-4855-9d49-49dd051ec3c3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=La api de COBERTURA envia los datos a serper",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1392,
+        -48
+      ],
+      "id": "e291a174-9a4f-48cc-a613-6fbd73790ef3",
+      "name": "API COBERTURA YA INICIO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1zBMhwmNeEjxHKDqQhxQjVAZiuxwTHE-eQggz-Ssp75Q/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zBMhwmNeEjxHKDqQhxQjVAZiuxwTHE-eQggz-Ssp75Q/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "key",
+              "lookupValue": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        -128
+      ],
+      "id": "09dd62ba-75d5-4306-84cb-9bc1b11da030",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "B5GIYijU45BmFwHQ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker stop analisis-cobertura-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        -48
+      ],
+      "id": "8c8469d0-baac-4bef-ad99-b212323bf29d",
+      "name": "INICIA ANALISIS DE COBERTURA"
+    },
+    {
+      "parameters": {
+        "command": "docker start analisis-cobertura-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -224
+      ],
+      "id": "61f43b6a-7fd7-4e12-bcbc-a58733e46158",
+      "name": "INICIA ANALISIS DE COBERTURA1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f01cfc3e-c187-46c7-b255-752e32f5d746",
+              "leftValue": "={{ $('ANALISIS DE COBERTURA').item.json.foursquare === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1008,
+        -128
+      ],
+      "id": "d0ace879-4f10-4134-85a6-4a3496c61592",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://analisis-cobertura-api:8008/analizar/cobertura",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  municipios:$json['municipios '],\n  keywords: $json[\"keywords\"],\n  ignorar_umbral: false,\nsolo_grandes_ciudades: true\n}) }}\n\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1200,
+        -384
+      ],
+      "id": "37d420a5-2ebb-48e6-8d71-4aad526af1b2",
+      "name": "API INICIA COBERTURA1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "xkHwF3zUHW6PRY3J",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xkHwF3zUHW6PRY3J",
+          "cachedResultName": "9. FOURQUARE"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1840,
+        -384
+      ],
+      "id": "9b0ad0b5-c416-408c-af25-23900871a46e",
+      "name": "LLAMA A FOURQUARE1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "id",
+              "value": "={{ $('API COBERTURA YA INICIO1').item.json.result.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "184e269d-5eda-44bc-900d-e87ef1743169",
+              "name": "keywords",
+              "value": "={{ $('API INICIA COBERTURA1').item.json.keywords }}",
+              "type": "array"
+            },
+            {
+              "id": "b0414117-0a35-4476-b535-c61ff3b97718",
+              "name": "selected_locations",
+              "value": "={{ $('API INICIA COBERTURA1').item.json.municipios_grandes_ciudades }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1680,
+        -384
+      ],
+      "id": "83fbb564-6d3f-43ea-bde9-c2650fa31776",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=La api de COBERTURA envia los datos a serper",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1392,
+        -384
+      ],
+      "id": "1c951479-bfe7-482d-9274-dae7b5b35023",
+      "name": "API COBERTURA YA INICIO1",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker stop analisis-cobertura-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        -384
+      ],
+      "id": "a94726fd-4e90-40fc-baeb-606ce7588722",
+      "name": "INICIA ANALISIS DE COBERTURA2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "municipios ",
+              "value": "={{ $('DATOS').item.json.payload_json.selected_locations }}",
+              "type": "array"
+            },
+            {
+              "id": "8eb462ae-5fe6-427a-8670-581816d03c63",
+              "name": "keywords",
+              "value": "={{ \n  $json.palabras\n    ? $json.palabras.split(',').map(p => p.trim())\n    : []\n}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        -128
+      ],
+      "id": "75fccb74-6642-46d7-847b-a51c0e12db98",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "O3KsB70X7ABZZAUJ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/O3KsB70X7ABZZAUJ",
+          "cachedResultName": "8. SERPER"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1840,
+        -48
+      ],
+      "id": "e491fba4-a4af-4ef7-aa3d-177c793e535c",
+      "name": "LLAMA A SERPER"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "ERROR API COBERTURA ABAJO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Status": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OTRO ESTADO DE COBERTURA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "API STATUS COBERTURA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS": {
+      "main": [
+        [
+          {
+            "node": "NOTIFICACION ANALISIS DE COBERTURA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ANALISIS DE COBERTURA": {
+      "main": [
+        [
+          {
+            "node": "DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API HEALTH COBERTURA": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ERROR API COBERTURA ABAJO": {
+      "main": [
+        [
+          {
+            "node": "INICIA ANALISIS DE COBERTURA1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API STATUS COBERTURA": {
+      "main": [
+        [
+          {
+            "node": "IF Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API INICIA COBERTURA": {
+      "main": [
+        [
+          {
+            "node": "API COBERTURA YA INICIO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTIFICACION ANALISIS DE COBERTURA": {
+      "main": [
+        [
+          {
+            "node": "API HEALTH COBERTURA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "LLAMA A SERPER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API COBERTURA YA INICIO": {
+      "main": [
+        [
+          {
+            "node": "INICIA ANALISIS DE COBERTURA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA ANALISIS DE COBERTURA": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA ANALISIS DE COBERTURA1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "API INICIA COBERTURA1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API INICIA COBERTURA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API INICIA COBERTURA1": {
+      "main": [
+        [
+          {
+            "node": "API COBERTURA YA INICIO1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "LLAMA A FOURQUARE1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API COBERTURA YA INICIO1": {
+      "main": [
+        [
+          {
+            "node": "INICIA ANALISIS DE COBERTURA2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA ANALISIS DE COBERTURA2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5f1919da-f42d-4c0c-b35e-c57353eefbcf",
+  "meta": {
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "OaKCc5lMCqZjKMki",
+  "tags": []
+}

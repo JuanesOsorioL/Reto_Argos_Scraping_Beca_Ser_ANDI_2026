@@ -1,0 +1,688 @@
+{
+  "name": "4. FLUJO DE MUNICIPIOS",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "FLUJO DE MUNICIPIOS",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -32,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.error.status }}",
+                    "rightValue": 500,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    },
+                    "id": "6c930781-8cf2-4c8e-92d9-abbe3e5b130c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "error"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fc044d2c-e505-48db-98e0-db6a8bcf12ef",
+                    "leftValue": "={{$json[\"accepted_count\"] > 0}}",
+                    "rightValue": "valido",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "valido"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "98879718-3bf6-4171-943b-9f548df4d8ed",
+                    "leftValue": "={{$json[\"accepted_count\"] === 0 && $json[\"matches\"][0][\"source\"] === \"fuzzy_medium\"}}",
+                    "rightValue": "sugerencia",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sugerencia"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "71209ab5-912a-425b-97ca-dd5de9f76892",
+                    "leftValue": "={{$json[\"accepted_count\"] === 0 && $json[\"matches\"][0][\"source\"] === \"rejected\"}}",
+                    "rightValue": "invalido",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "invalido"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "116bcfd4-7130-4809-911c-271e7b7dc028",
+                    "leftValue": "={{$json[\"accepted_count\"] == 0}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        224
+      ],
+      "id": "2a667107-38ad-4769-ba8a-46c5f20a30b0",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('FLUJO DE MUNICIPIOS').item.json.message.from.id }}",
+        "text": "Formato no identificado , intenta de nuevo. ingresa la ciudad",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        592,
+        -16
+      ],
+      "id": "23b668b5-4cb0-441d-8ae2-20c35fd3e625",
+      "name": "una ciudad",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('TODOS LOS MUNICIPIOS').item.json.accepted_count }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    },
+                    "id": "b4424e79-2d00-48c8-89fc-cb375254eaad"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "uno"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "478a7a95-d194-4e22-80bd-5edcd355cc8d",
+                    "leftValue": "={{ $('TODOS LOS MUNICIPIOS').item.json.accepted_count }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "varios"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        192
+      ],
+      "id": "a32ba30e-3d24-4057-8ed6-a96d47332e18",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('FLUJO DE MUNICIPIOS').item.json.body.message.from.id }}",
+        "text": "={{ 'Perfecto, buscaré por ' + $('TODOS LOS MUNICIPIOS').item.json.selected_locations.map(x => x.municipio).join(', ') + '.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        96
+      ],
+      "id": "86640e77-f400-4adc-9563-2a101ea9b036",
+      "name": "una ciudad1",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('FLUJO DE MUNICIPIOS').item.json.body.message.from.id }}",
+        "text": "={{ 'Perfecto, buscaré por ' + $('TODOS LOS MUNICIPIOS').item.json.selected_locations.map(x => x.municipio).join(', ') + '.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        272
+      ],
+      "id": "f1a11e93-5348-419c-bad9-c22c6a229b14",
+      "name": "ingresaste varios",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('FLUJO DE MUNICIPIOS').item.json.message.from.id }}",
+        "text": "invalido",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        656,
+        592
+      ],
+      "id": "b92574e3-e4f7-41d3-be14-9710d2d52942",
+      "name": "invalido",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('FLUJO DE MUNICIPIOS').item.json.message.from.id }}",
+        "text": "sugerencia",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        352
+      ],
+      "id": "554a401b-50d2-4121-8f6a-72c8eeaa2172",
+      "name": "sugerencia",
+      "webhookId": "01939e30-d375-4b00-9a75-dbf14e3ffcc2",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker stop validar-ciudades-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        656,
+        192
+      ],
+      "id": "a26d833c-14cf-4025-a5cf-73c653eb9393",
+      "name": "APAGAR API CIUDADES"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b4143d0d-c3f3-4116-99a7-2da90ffcaf63",
+              "name": "id",
+              "value": "={{ $json.chat_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1456,
+        160
+      ],
+      "id": "0c5274df-11f8-4b1e-bbf3-dbc98cc96fd8",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://validar-ciudades-api:8003/match-cities",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"mode\": \"multiple\",\n  \"input\": \"{{$json[\"body\"][\"message\"][\"text\"]}}\",\n  \"search_level\": \"municipio\",\n  \"use_ai\": true,\n  \"department_filter\": \"Antioquia\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        192,
+        272
+      ],
+      "id": "142d3665-6e23-42df-8400-61c7f1ead2f4",
+      "name": "TODOS LOS MUNICIPIOS",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1ZkunM1rHSNQcY9H",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/1ZkunM1rHSNQcY9H",
+          "cachedResultName": "1. RUES"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1632,
+        160
+      ],
+      "id": "68d751cb-fa82-4dde-b038-14ade46d4c46",
+      "name": "LLAMAR A RUES"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.result.chat.id }}",
+            "status": "se guarda el payload de uno o varios",
+            "payload_json": "={{ { selected_locations: $('TODOS LOS MUNICIPIOS').item.json.selected_locations } }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payload_json",
+              "displayName": "payload_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1248,
+        160
+      ],
+      "id": "fbe6533f-831f-4ae8-8a14-ebb751917f94",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "FLUJO DE MUNICIPIOS": {
+      "main": [
+        [
+          {
+            "node": "TODOS LOS MUNICIPIOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "una ciudad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "APAGAR API CIUDADES",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "sugerencia",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "invalido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "invalido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "una ciudad1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ingresaste varios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "APAGAR API CIUDADES": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "una ciudad1": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ingresaste varios": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TODOS LOS MUNICIPIOS": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "LLAMAR A RUES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "085ddae5-75a9-41b8-aaac-4744922666d1",
+  "meta": {
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "WjDFUPiRFX4nQDh2",
+  "tags": []
+}

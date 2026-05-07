@@ -1,0 +1,779 @@
+{
+  "name": "9. FOURQUARE",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0bb0520b-f4bf-4a16-9c3c-88380b1a497b",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -432,
+        -144
+      ],
+      "id": "2caa0079-a865-476c-a850-3e5b11bae8df",
+      "name": "IF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03936893-af2c-40ce-89a8-ae9666d867dd",
+              "leftValue": "={{ $json.en_curso }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        48,
+        -16
+      ],
+      "id": "afb4e9f9-483e-4ade-b1b7-f22e334ecf00",
+      "name": "IF Status"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1168,
+        -144
+      ],
+      "id": "61538338-f2d3-40ee-a581-706954feb3cd",
+      "name": "FOURQUARE"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=📡 Activación recibida\nSe ha detectado la solicitud para ejecutar la API de Foursquare.\n⚙️ Iniciando proceso...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        -144
+      ],
+      "id": "8cfeb1bc-13cc-42e6-8132-edb9b76f4bc3",
+      "name": "NOTIFICACION FOURQUARE",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://foursquare-api:8005/health",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -640,
+        -144
+      ],
+      "id": "4fa3c79a-7327-42e6-a36c-598295ab56b3",
+      "name": "API HEALTH FOURQUARE",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=🌍 Procesamiento en curso\nLa API de Foursquare ha sido iniciada correctamente.\n⏳ Ejecutando consulta, por favor espera...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        96
+      ],
+      "id": "ba572692-0b1e-4393-a636-da81fa93fe9f",
+      "name": "ERROR API FOURQUARE ABAJO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://foursquare-api:8005/status",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -144,
+        -16
+      ],
+      "id": "1e49a41e-ca6b-4f26-b96a-f8fd472621c7",
+      "name": "API STATUS FOURQUARE"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=📡 Estado del servicio Foursquare\n🧩 Estado interno: {{ $('API STATUS FOURQUARE').item.json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        144
+      ],
+      "id": "0354f60c-7679-449f-9ef7-abb4be1de293",
+      "name": "OTRO ESTADO DE FOURQUARE",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://foursquare-api:8005/scrape/foursquare",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \n  JSON.stringify({\n    selected_locations: $('FOURQUARE').item.json.selected_locations,\n    keywords: $('FOURQUARE').item.json.keywords\n  })\n}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        304,
+        -32
+      ],
+      "id": "1a551704-c7af-4836-930c-ee95e63f9a05",
+      "name": "API INICIA FOURQUARE"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('DATOS').item.json.chat_id }}",
+        "text": "=📡 Estado del servicio Foursquare\n🔎 Estado actual: {{ $json.status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        -32
+      ],
+      "id": "3c1e4f93-0b04-4ea8-a280-145e9d9f469c",
+      "name": "API FOURQUAREYA INICIO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=📊 Resultado de la ejecución\n🔹 Estado: {{ $('Webhook').item.json.body.status }}\n🆔 ID de ejecución: {{ $('Webhook').item.json.body.run_id }}\n🕒 Hora de inicio: {{ $('Webhook').item.json.body.inicio }}\n🕓 Hora de finalización: {{ $('Webhook').item.json.body.fin }}\n⏱️ Duración: {{ $('Webhook').item.json.body.duracion }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        352
+      ],
+      "id": "3d4d9d3b-1536-4d92-92d7-837eea93df76",
+      "name": "NOTIFICACION FOURQUARE FINALIZO",
+      "webhookId": "0f997932-b9ba-474b-b791-85ad5b24e972",
+      "credentials": {
+        "telegramApi": {
+          "id": "sra1KcEVHIXPNEy8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "docker start foursquare-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        96
+      ],
+      "id": "6c642e92-cea1-4fef-9e34-4139b01afe3f",
+      "name": "INICIA FOURSQUARE"
+    },
+    {
+      "parameters": {
+        "command": "docker stop foursquare-api"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        336,
+        352
+      ],
+      "id": "ee5d73f8-42b9-437d-8d7a-0c7202406e11",
+      "name": "APAGA API FOURSQUARE"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -416,
+        96
+      ],
+      "id": "68c1a324-c313-4066-803f-9ed0adcf1fc6",
+      "name": "Wait",
+      "webhookId": "6b2ebb28-fb9b-4095-b456-15e70ec34969"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ String($json.id) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1008,
+        -144
+      ],
+      "id": "c6a234e9-37e4-44e2-8eaf-474f801007d3",
+      "name": "DATOS",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('DATOS').item.json.chat_id }}",
+            "run_id": "={{ $('API INICIA FOURQUARE').item.json.run_id }}",
+            "status": "Corriendo scraping de foursquare"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payload_json",
+              "displayName": "payload_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "run_id",
+              "displayName": "run_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        512,
+        -32
+      ],
+      "id": "bc00746f-37e5-41f8-8b37-7955ffafa06f",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "foursquare-complete",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -272,
+        352
+      ],
+      "id": "06165c49-0cb5-438f-be92-8257bac611ec",
+      "name": "Webhook",
+      "webhookId": "10a3aaef-381f-4c31-8dc3-43ce770a9773"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "raw",
+          "mode": "list",
+          "cachedResultName": "raw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "scraping_runs",
+          "mode": "list",
+          "cachedResultName": "scraping_runs"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "run_id",
+              "value": "={{ $json.body.run_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -64,
+        352
+      ],
+      "id": "0b880c11-b81a-4091-aaf0-2f9d356a5790",
+      "name": "DATOS RUNID",
+      "credentials": {
+        "postgres": {
+          "id": "xR3CyLNoFvi5hs76",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea4fce6e-e3db-4533-8ba4-402d720e864d",
+              "name": "id",
+              "value": "={{ $('DATOS RUNID').item.json.chat_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        352
+      ],
+      "id": "7faf42f6-610b-4978-bfcd-ac88526d47cd",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pyhNdefcTwNfr92m",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pyhNdefcTwNfr92m",
+          "cachedResultName": "API FERRETERIA LIMPIEZA"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        352
+      ],
+      "id": "1728dffb-ec8f-4b5e-a063-42213f6b9f94",
+      "name": "LLAMA A LIMPIEZA DATOS"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "API STATUS FOURQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ERROR API FOURQUARE ABAJO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Status": {
+      "main": [
+        [
+          {
+            "node": "API INICIA FOURQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OTRO ESTADO DE FOURQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FOURQUARE": {
+      "main": [
+        [
+          {
+            "node": "DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTIFICACION FOURQUARE": {
+      "main": [
+        [
+          {
+            "node": "API HEALTH FOURQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API HEALTH FOURQUARE": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API STATUS FOURQUARE": {
+      "main": [
+        [
+          {
+            "node": "IF Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API INICIA FOURQUARE": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTIFICACION FOURQUARE FINALIZO": {
+      "main": [
+        [
+          {
+            "node": "APAGA API FOURSQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ERROR API FOURQUARE ABAJO": {
+      "main": [
+        [
+          {
+            "node": "INICIA FOURSQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INICIA FOURSQUARE": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "APAGA API FOURSQUARE": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "API STATUS FOURQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS": {
+      "main": [
+        [
+          {
+            "node": "NOTIFICACION FOURQUARE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "API FOURQUAREYA INICIO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "DATOS RUNID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DATOS RUNID": {
+      "main": [
+        [
+          {
+            "node": "NOTIFICACION FOURQUARE FINALIZO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "LLAMA A LIMPIEZA DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "aba2ad95-7799-490b-81dd-624ca67815da",
+  "meta": {
+    "instanceId": "c35677bf7ad8f37f362f9c488cbd8a4b073c940ce602a90aec5b1d9239652010"
+  },
+  "id": "xkHwF3zUHW6PRY3J",
+  "tags": []
+}
